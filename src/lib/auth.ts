@@ -13,6 +13,17 @@ const loginSchema = z.object({
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
   secret: process.env.AUTH_SECRET,
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 90,
+      },
+    },
+  },
   providers: [
     Credentials({
       name: "credentials",

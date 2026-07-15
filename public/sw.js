@@ -1,4 +1,4 @@
-const CACHE_NAME = "tur-yonetim-v3";
+const CACHE_NAME = "tur-yonetim-v5";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(self.skipWaiting());
@@ -74,10 +74,14 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
-
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
+  if (event.request.method !== "GET") return;
+
+  // Auth and navigations must always hit the network.
+  if (event.request.mode === "navigate") return;
+  if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname === "/login") return;
 
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))

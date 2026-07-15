@@ -6,6 +6,7 @@ import sharp from "sharp";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
 const iconsDir = join(root, "public/icons");
+const publicDir = join(root, "public");
 const appDir = join(root, "src/app");
 const source = join(iconsDir, "icon-source.png");
 
@@ -34,5 +35,6 @@ copyFileSync(
 
 await resize(source, join(appDir, "icon.png"), 32);
 await resize(source, join(appDir, "apple-icon.png"), 180);
+await resize(source, join(publicDir, "apple-touch-icon.png"), 180);
 
 console.log("PWA icons generated from public/icons/icon-source.png");

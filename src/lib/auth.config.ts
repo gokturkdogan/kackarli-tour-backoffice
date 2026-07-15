@@ -1,10 +1,20 @@
 import type { NextAuthConfig } from "next-auth";
 
+const SESSION_MAX_AGE = 60 * 60 * 24 * 90; // 90 days
+
 export const authConfig = {
+  trustHost: true,
   pages: {
     signIn: "/login",
   },
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: SESSION_MAX_AGE,
+    updateAge: 60 * 60 * 24, // extend session daily while active
+  },
+  jwt: {
+    maxAge: SESSION_MAX_AGE,
+  },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoginPage = nextUrl.pathname === "/login";
