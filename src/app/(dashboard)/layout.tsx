@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { Toaster } from "@/components/ui/sonner";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export default function AdminLayout({
         {children}
       </SidebarInset>
       <Toaster richColors position="top-right" />
+      <PushNotificationPrompt />
     </SidebarProvider>
   );
 }

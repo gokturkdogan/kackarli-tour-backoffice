@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { AdminReservation } from "@/actions/reservations";
@@ -65,8 +65,37 @@ export function ReservationsTable({
   reservations: AdminReservation[];
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selected, setSelected] = useState<AdminReservation | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    const reservationId = searchParams.get("reservation");
+    if (!reservationId) return;
+
+    const reservation = reservations.find((item) => item.id === reservationId);
+    if (reservation) {
+      setSelected(reservation);
+    }
+  }, [searchParams, reservations]);
+
+  function clearReservationQuery() {
+    if (!searchParams.get("reservation")) return;
+    router.replace(pathname);
+  }
+
+  function handleDialogOpenChange(open: boolean) {
+    if (!open) {
+      setSelected(null);
+      clearReservationQuery();
+    }
+  }
+
+  function openReservation(reservation: AdminReservation) {
+    setSelected(reservation);
+    router.replace(`${pathname}?reservation=${reservation.id}`);
+  }
 
   async function handleStatusChange(status: ReservationStatusValue) {
     if (!selected || status === selected.status || isUpdating) return;
@@ -108,7 +137,7 @@ export function ReservationsTable({
                 key={reservation.id}
                 type="button"
                 className="w-full text-left rounded-lg border border-forest-100 bg-white p-4 space-y-3 hover:bg-forest-50/60 transition-colors"
-                onClick={() => setSelected(reservation)}
+                onClick={() => openReservation(reservation)}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -180,7 +209,7 @@ export function ReservationsTable({
                   <TableRow
                     key={reservation.id}
                     className="cursor-pointer hover:bg-forest-50/60 transition-colors"
-                    onClick={() => setSelected(reservation)}
+                    onClick={() => openReservation(reservation)}
                   >
                     <TableCell>
                       <div>
@@ -243,7 +272,7 @@ export function ReservationsTable({
         </div>
       </div>
 
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog open={!!selected} onOpenChange={handleDialogOpenChange}>
         <DialogContent className="sm:max-w-lg max-md:max-h-[90vh] max-md:overflow-y-auto">
           {selected && (
             <>
