@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
+import sharp from "sharp";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -16,14 +16,15 @@ if (!existsSync(source)) {
 
 mkdirSync(iconsDir, { recursive: true });
 
-function resize(input, output, size) {
-  execSync(`sips -z ${size} ${size} "${input}" --out "${output}"`, {
-    stdio: "ignore",
-  });
+async function resize(input, output, size) {
+  await sharp(input)
+    .resize(size, size, { fit: "cover" })
+    .png()
+    .toFile(output);
 }
 
 for (const size of [192, 512]) {
-  resize(source, join(iconsDir, `icon-${size}.png`), size);
+  await resize(source, join(iconsDir, `icon-${size}.png`), size);
 }
 
 copyFileSync(
@@ -31,7 +32,7 @@ copyFileSync(
   join(iconsDir, "icon-maskable-512.png")
 );
 
-resize(source, join(appDir, "icon.png"), 32);
-resize(source, join(appDir, "apple-icon.png"), 180);
+await resize(source, join(appDir, "icon.png"), 32);
+await resize(source, join(appDir, "apple-icon.png"), 180);
 
 console.log("PWA icons generated from public/icons/icon-source.png");
