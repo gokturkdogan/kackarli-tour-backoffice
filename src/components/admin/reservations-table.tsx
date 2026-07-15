@@ -94,7 +94,65 @@ export function ReservationsTable({
 
   return (
     <>
-      <div className="rounded-lg border border-forest-100 bg-white overflow-hidden">
+      <div className="md:hidden space-y-3">
+        {reservations.length === 0 ? (
+          <div className="rounded-lg border border-forest-100 bg-white p-8 text-center text-muted-foreground">
+            Henüz rezervasyon talebi yok
+          </div>
+        ) : (
+          reservations.map((reservation) => {
+            const guestCount = reservation.adultCount + reservation.childCount;
+
+            return (
+              <button
+                key={reservation.id}
+                type="button"
+                className="w-full text-left rounded-lg border border-forest-100 bg-white p-4 space-y-3 hover:bg-forest-50/60 transition-colors"
+                onClick={() => setSelected(reservation)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-forest-900">
+                      {reservation.firstName} {reservation.lastName}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {formatCreatedAt(reservation.createdAt)}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={reservationStatusBadgeClass(reservation.status)}
+                  >
+                    {reservationStatusLabel(reservation.status)}
+                  </Badge>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <p className="font-medium text-forest-900">{reservation.tour.title}</p>
+                  <p className="text-forest-800 text-xs leading-snug">
+                    {formatScheduleLabel(
+                      new Date(reservation.schedule.startDate),
+                      reservation.schedule.endDate
+                        ? new Date(reservation.schedule.endDate)
+                        : null
+                    )}
+                  </p>
+                </div>
+                <div className="flex items-center justify-between text-sm pt-1 border-t border-forest-50">
+                  <span className="text-muted-foreground">
+                    {guestCount} kişi · {reservation.phone}
+                  </span>
+                  <span className="font-medium tabular-nums">
+                    {formatPrice(reservation.totalPrice)}
+                  </span>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <div className="hidden md:block rounded-lg border border-forest-100 bg-white overflow-hidden">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -182,10 +240,11 @@ export function ReservationsTable({
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           {selected && (
             <>
               <DialogHeader>
@@ -198,7 +257,7 @@ export function ReservationsTable({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Durum</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {MODAL_STATUS_OPTIONS.map((status) => {
                       const isActive = selected.status === status;
                       return (

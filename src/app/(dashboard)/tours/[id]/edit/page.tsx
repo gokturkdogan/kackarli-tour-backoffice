@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { PageContent } from "@/components/admin/page-content";
 import { TourForm } from "@/components/admin/tour-form";
 import { TourImageManager } from "@/components/admin/tour-image-manager";
 import { getTourById } from "@/actions/tours";
@@ -52,10 +53,10 @@ export default async function EditTourPage({ params }: EditTourPageProps) {
   return (
     <>
       <AdminHeader title="Tur Düzenle" description={tour.title} />
-      <div className="p-6">
+      <PageContent>
         <TourForm initialData={formData} />
         <TourImageManager tourId={tour.id} images={tour.images} />
-      </div>
+      </PageContent>
     </>
   );
 }

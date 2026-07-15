@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/date-helpers";
 import { resolveAdultPrice, resolveChildPrice } from "@/lib/pricing";
 import type { CalendarExistingSchedule } from "@/actions/schedules";
+import { ScheduleMobileList } from "@/components/admin/schedule-mobile-list";
 
 const WEEKDAYS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
@@ -158,16 +159,16 @@ function ScheduleManageButtons({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex items-center gap-0.5">
+    <div className="flex flex-wrap items-center gap-0.5">
       <button
         type="button"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
         }}
-        className="inline-flex items-center gap-0.5 rounded px-2 py-1 text-[10px] font-semibold text-forest-700 bg-white border border-forest-200 hover:bg-forest-50 transition-colors cursor-pointer shadow-sm"
+        className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-semibold text-forest-700 bg-white border border-forest-200 hover:bg-forest-50 transition-colors cursor-pointer shadow-sm"
       >
-        <Pencil className="h-3 w-3" />
+        <Pencil className="h-3.5 w-3.5" />
         Düzenle
       </button>
       <button
@@ -176,9 +177,9 @@ function ScheduleManageButtons({
           e.stopPropagation();
           onDelete();
         }}
-        className="inline-flex items-center gap-0.5 rounded px-2 py-1 text-[10px] font-semibold text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-sm"
+        className="inline-flex items-center gap-1 rounded px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-sm"
       >
-        <Trash2 className="h-3 w-3" />
+        <Trash2 className="h-3.5 w-3.5" />
         Sil
       </button>
     </div>
@@ -376,7 +377,7 @@ export function ScheduleMonthCalendar({
         >
           <ChevronLeft className="h-5 w-5" />
         </Button>
-        <h3 className="text-lg font-semibold text-forest-900 capitalize">{monthLabel}</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-forest-900 capitalize">{monthLabel}</h3>
         <Button
           type="button"
           variant="ghost"
@@ -388,6 +389,41 @@ export function ScheduleMonthCalendar({
         </Button>
       </div>
 
+      <ScheduleMobileList
+        month={month}
+        selectedDates={selectedDates}
+        selectedTourId={selectedTourId}
+        existingSchedulesByDate={existingSchedulesByDate}
+        dateOverrides={dateOverrides}
+        defaultCapacity={defaultCapacity}
+        defaultPricePlaceholder={defaultPricePlaceholder}
+        defaultChildPricePlaceholder={defaultChildPricePlaceholder}
+        templateDate={templateDate}
+        spreadMode={spreadMode}
+        onDayClick={onDayClick}
+        onRemoveDate={onRemoveDate}
+        onEditSchedule={onEditSchedule}
+        onDeleteSchedule={onDeleteSchedule}
+        onOverrideChange={onOverrideChange}
+        renderBookedCard={(schedule, dateKey, canManage) => (
+          <BookedScheduleCard
+            schedule={schedule}
+            canManage={canManage}
+            onEdit={() => onEditSchedule(schedule, dateKey)}
+            onDelete={() => onDeleteSchedule(schedule, dateKey)}
+          />
+        )}
+        renderOtherCard={(schedule, dateKey, canManage) => (
+          <OtherTourScheduleCard
+            schedule={schedule}
+            canManage={canManage}
+            onEdit={() => onEditSchedule(schedule, dateKey)}
+            onDelete={() => onDeleteSchedule(schedule, dateKey)}
+          />
+        )}
+      />
+
+      <div className="hidden md:block">
       <div className="grid grid-cols-7 gap-1 bg-forest-100/80 rounded-xl overflow-hidden border border-forest-100 p-1">
         {WEEKDAYS.map((day) => (
           <div
@@ -608,8 +644,9 @@ export function ScheduleMonthCalendar({
           );
         })}
       </div>
+      </div>
 
-      <div className="flex flex-wrap gap-3 mt-4 text-xs text-muted-foreground">
+      <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <span className="w-3 h-3 rounded bg-forest-700" />
           Seçili

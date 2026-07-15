@@ -1,4 +1,5 @@
 import { AdminHeader } from "@/components/admin/admin-header";
+import { PageContent } from "@/components/admin/page-content";
 import { ReservationsTable } from "@/components/admin/reservations-table";
 import { getReservations } from "@/actions/reservations";
 
@@ -11,9 +12,9 @@ export default async function ReservationsPage() {
         title="Rezervasyonlar"
         description="Rezervasyon taleplerini görüntüleyin ve yönetin"
       />
-      <div className="p-6 space-y-4">
+      <PageContent>
         <ReservationsTable reservations={reservations} />
-      </div>
+      </PageContent>
     </>
   );
 }

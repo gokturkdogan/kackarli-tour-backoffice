@@ -356,12 +356,15 @@ export function ScheduleCalendarForm({
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
               <Button
                 type="button"
                 variant={spreadMode ? "default" : "outline"}
                 size="sm"
-                className={spreadMode ? "bg-sage-600 hover:bg-sage-700" : ""}
+                className={cn(
+                  "w-full sm:w-auto",
+                  spreadMode ? "bg-sage-600 hover:bg-sage-700" : ""
+                )}
                 onClick={() => (spreadMode ? setSpreadMode(false) : startSpreadMode())}
               >
                 <Copy className="h-3.5 w-3.5 mr-1.5" />
@@ -372,7 +375,7 @@ export function ScheduleCalendarForm({
         </CardContent>
       </Card>
 
-      <div className="grid xl:grid-cols-[minmax(0,1fr)_210px] gap-3 items-start">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_210px] items-start">
         <Card className="min-w-0">
           <CardHeader className="pb-2 px-4 sm:px-5 pt-4">
             <CardTitle className="text-lg">Takvim</CardTitle>
@@ -402,7 +405,7 @@ export function ScheduleCalendarForm({
           </CardContent>
         </Card>
 
-        <div className="space-y-2 xl:sticky xl:top-20 w-full max-w-[210px]">
+        <div className="space-y-2 w-full xl:sticky xl:top-20 xl:max-w-[210px]">
           <Card>
             <CardHeader className="pb-1.5 px-3 pt-3">
               <CardTitle className="text-sm font-semibold">Yeni Tarih</CardTitle>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminHeader } from "@/components/admin/admin-header";
+import { PageContent } from "@/components/admin/page-content";
 import { ScheduleCalendarForm } from "@/components/admin/schedule-calendar-form";
 import { getExistingSchedulesByDate, getToursForScheduleSelect } from "@/actions/schedules";
 import { buttonVariants } from "@/components/ui/button";
@@ -17,7 +18,7 @@ export default async function SchedulesPage() {
         title="Tur Tarihleri"
         description="Takvimden gün seçin, kontenjan ve fiyatları yönetin"
       />
-      <div className="p-6">
+      <PageContent>
         {tours.length === 0 ? (
           <div className="rounded-lg border border-forest-100 bg-white p-8 text-center max-w-lg">
             <p className="text-muted-foreground mb-4">
@@ -33,7 +34,7 @@ export default async function SchedulesPage() {
         ) : (
           <ScheduleCalendarForm tours={tours} existingSchedulesByDate={existingSchedulesByDate} />
         )}
-      </div>
+      </PageContent>
     </>
   );
 }

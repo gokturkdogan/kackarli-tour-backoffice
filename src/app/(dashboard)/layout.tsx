@@ -12,7 +12,7 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <AdminSidebar />
-      <SidebarInset className="bg-mist min-h-screen">
+      <SidebarInset className="bg-mist min-h-screen min-w-0 overflow-x-hidden">
         {children}
       </SidebarInset>
       <Toaster richColors position="top-right" />

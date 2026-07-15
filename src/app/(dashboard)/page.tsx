@@ -1,4 +1,5 @@
 import { AdminHeader } from "@/components/admin/admin-header";
+import { PageContent } from "@/components/admin/page-content";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { Map, BookOpen, Calendar } from "lucide-react";
@@ -48,7 +49,7 @@ export default async function AdminDashboardPage() {
         title="Dashboard"
         description="Kaçkarlı Tur yönetim paneline hoş geldiniz"
       />
-      <div className="p-6 space-y-6">
+      <PageContent>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {cards.map((card) => (
             <Link key={card.title} href={card.href}>
@@ -76,16 +77,16 @@ export default async function AdminDashboardPage() {
           <CardHeader>
             <CardTitle className="text-forest-900">Hızlı İşlemler</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
+          <CardContent>
             <Link
               href="/tours/new"
-              className="inline-flex items-center px-4 py-2 rounded-lg bg-forest-600 text-cream text-sm font-medium hover:bg-forest-700 transition-colors"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded-lg bg-forest-600 text-cream text-sm font-medium hover:bg-forest-700 transition-colors"
             >
               Yeni Tur Ekle
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </PageContent>
     </>
   );
 }

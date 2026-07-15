@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import {
   Sidebar,
+  useSidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
@@ -40,11 +41,18 @@ const menuItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  function handleNavigate() {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }
 
   return (
     <Sidebar className="border-r border-forest-800/20">
       <SidebarHeader className="border-b border-forest-800/20 px-4 py-4">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3" onClick={handleNavigate}>
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-forest-600">
             <Mountain className="h-5 w-5 text-cream" />
           </div>
@@ -70,7 +78,7 @@ export function AdminSidebar() {
                     </SidebarMenuButton>
                   ) : (
                     <SidebarMenuButton
-                      render={<Link href={item.href} />}
+                      render={<Link href={item.href} onClick={handleNavigate} />}
                       isActive={
                         item.href === "/"
                           ? pathname === "/"
