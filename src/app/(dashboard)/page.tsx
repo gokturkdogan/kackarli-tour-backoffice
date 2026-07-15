@@ -80,7 +80,7 @@ export default async function AdminDashboardPage() {
           <CardContent>
             <Link
               href="/tours/new"
-              className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded-lg bg-forest-600 text-cream text-sm font-medium hover:bg-forest-700 transition-colors"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded-lg bg-forest-600 text-cream text-sm font-medium hover:bg-forest-700 transition-colors max-md:w-full"
             >
               Yeni Tur Ekle
             </Link>

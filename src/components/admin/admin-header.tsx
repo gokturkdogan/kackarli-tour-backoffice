@@ -21,13 +21,13 @@ export function AdminHeader({ title, description }: AdminHeaderProps) {
   const { data: session } = useSession();
 
   return (
-    <header className="flex h-auto min-h-14 items-center gap-2 sm:gap-4 border-b border-forest-800/10 bg-cream/80 backdrop-blur-sm px-3 sm:px-4 py-2 sm:py-0 sticky top-0 z-10">
+    <header className="flex h-14 items-center gap-4 border-b border-forest-800/10 bg-cream/80 backdrop-blur-sm px-4 sticky top-0 z-10 max-md:min-h-14 max-md:h-auto max-md:gap-2 max-md:px-3 max-md:py-2">
       <SidebarTrigger className="text-forest-700 shrink-0" />
-      <Separator orientation="vertical" className="h-6 hidden sm:block" />
+      <Separator orientation="vertical" className="h-6 max-md:hidden" />
       <div className="flex-1 min-w-0">
-        <h1 className="text-base sm:text-lg font-semibold text-forest-900 truncate">{title}</h1>
+        <h1 className="text-lg font-semibold text-forest-900 truncate max-md:text-base">{title}</h1>
         {description && (
-          <p className="text-xs text-muted-foreground truncate">
+          <p className="text-xs text-muted-foreground hidden sm:block truncate">
             {description}
           </p>
         )}

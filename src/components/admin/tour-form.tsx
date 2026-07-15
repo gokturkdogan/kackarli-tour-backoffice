@@ -161,7 +161,7 @@ export function TourForm({ initialData }: TourFormProps) {
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <div className="space-y-2">
                 <Label htmlFor="duration">Süre</Label>
                 <Input
@@ -180,7 +180,7 @@ export function TourForm({ initialData }: TourFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
               <div className="space-y-2">
                 <Label htmlFor="departureTime">Hareket Saati</Label>
                 <Input
@@ -252,7 +252,7 @@ export function TourForm({ initialData }: TourFormProps) {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
                 <div className="space-y-2">
                   <Label htmlFor="price">Yetişkin Fiyatı (₺) *</Label>
                   <Input
@@ -342,13 +342,13 @@ export function TourForm({ initialData }: TourFormProps) {
       </div>
 
       <Card>
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <CardHeader className="flex flex-row items-center justify-between max-md:flex-col max-md:items-stretch max-md:gap-3">
           <CardTitle>Tur Programı — Duraklar</CardTitle>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto"
+            className="max-md:w-full"
             onClick={() =>
               append({
                 dayNumber: type === "DAY_TRIP" ? 1 : fields.length + 1,
@@ -468,15 +468,15 @@ export function TourForm({ initialData }: TourFormProps) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-col-reverse sm:flex-row gap-3">
+      <div className="flex gap-3 max-md:flex-col-reverse">
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-forest-600 hover:bg-forest-700 w-full sm:w-auto"
+          className="bg-forest-600 hover:bg-forest-700 max-md:w-full"
         >
           {isSubmitting ? "Kaydediliyor..." : isEditing ? "Güncelle" : "Oluştur"}
         </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
+        <Button type="button" variant="outline" onClick={() => router.back()} className="max-md:w-full">
           İptal
         </Button>
       </div>

@@ -88,7 +88,7 @@ export function ScheduleEditModal({ target, onClose }: ScheduleEditModalProps) {
 
   return (
     <Dialog open={!!target} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-md:max-h-[90vh] max-md:overflow-y-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Tur Tarihini Düzenle</DialogTitle>

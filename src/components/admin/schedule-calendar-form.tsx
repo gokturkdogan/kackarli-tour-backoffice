@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -327,102 +327,130 @@ export function ScheduleCalendarForm({
         </AlertDialogContent>
       </AlertDialog>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-            <div className="space-y-2">
-              <Label>Tur</Label>
-              <Select value={tourId} onValueChange={(v) => v && resetForTour(v)}>
-                <SelectTrigger className="w-full sm:max-w-md min-h-10 h-auto py-2">
-                  {selectedTour ? (
-                    <span className="text-left">
-                      <span className="font-medium">{selectedTour.title}</span>
-                      <span className="block text-xs text-muted-foreground">
-                        {tourTypeLabel(selectedTour.type)} · Tur fiyatı{" "}
-                        {formatPrice(selectedTour.price)}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(220px,1.2fr)_repeat(3,minmax(0,1fr))_auto_auto] lg:items-end">
+              <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                <Label>Tur</Label>
+                <Select value={tourId} onValueChange={(v) => v && resetForTour(v)}>
+                  <SelectTrigger className="w-full min-h-10 h-auto py-2">
+                    {selectedTour ? (
+                      <span className="text-left">
+                        <span className="font-medium">{selectedTour.title}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {tourTypeLabel(selectedTour.type)} · Tur fiyatı{" "}
+                          {formatPrice(selectedTour.price)}
+                        </span>
                       </span>
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Tur seçin</span>
+                    ) : (
+                      <span className="text-muted-foreground">Tur seçin</span>
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tours.map((tour) => (
+                      <SelectItem key={tour.id} value={tour.id}>
+                        {tour.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="defaultCapacity">Kontenjan</Label>
+                <Input
+                  id="defaultCapacity"
+                  type="number"
+                  min={1}
+                  className="h-10"
+                  value={defaults.capacity}
+                  onChange={(e) =>
+                    setDefaults((d) => ({ ...d, capacity: Number(e.target.value) || 1 }))
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Yetişkin ₺</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="h-10"
+                  placeholder={defaultPricePlaceholder}
+                  value={defaults.price}
+                  onChange={(e) => setDefaults((d) => ({ ...d, price: e.target.value }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Çocuk ₺</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  className="h-10"
+                  placeholder={defaultChildPricePlaceholder}
+                  value={defaults.childPrice}
+                  onChange={(e) =>
+                    setDefaults((d) => ({ ...d, childPrice: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-forest-100 px-3 h-10 lg:mb-0">
+                <Label htmlFor="active" className="text-sm shrink-0">
+                  Aktif
+                </Label>
+                <Switch id="active" checked={isActive} onCheckedChange={setIsActive} />
+              </div>
+
+              <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-1 lg:justify-end max-md:w-full">
+                <Button
+                  type="button"
+                  variant={spreadMode ? "default" : "outline"}
+                  className={cn(
+                    "h-10 max-md:flex-1",
+                    spreadMode ? "bg-sage-600 hover:bg-sage-700" : ""
                   )}
-                </SelectTrigger>
-                <SelectContent>
-                  {tours.map((tour) => (
-                    <SelectItem key={tour.id} value={tour.id}>
-                      {tour.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  onClick={() => (spreadMode ? setSpreadMode(false) : startSpreadMode())}
+                >
+                  <Copy className="h-4 w-4 mr-1.5" />
+                  {spreadMode ? "Yaymayı Bitir" : "Ayarı Yay"}
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || selectedDates.size === 0}
+                  className="h-10 bg-forest-600 hover:bg-forest-700 min-w-[140px] max-md:flex-1"
+                >
+                  {isSubmitting ? "Oluşturuluyor..." : `${selectedDates.size || 0} Tarih Oluştur`}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full sm:w-auto sm:justify-end">
-              <Button
-                type="button"
-                variant={spreadMode ? "default" : "outline"}
-                size="sm"
-                className={cn(
-                  "w-full sm:w-auto",
-                  spreadMode ? "bg-sage-600 hover:bg-sage-700" : ""
-                )}
-                onClick={() => (spreadMode ? setSpreadMode(false) : startSpreadMode())}
-              >
-                <Copy className="h-3.5 w-3.5 mr-1.5" />
-                {spreadMode ? "Yaymayı Bitir" : "Ayarı Yay"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_210px] items-start">
-        <Card className="min-w-0">
-          <CardHeader className="pb-2 px-4 sm:px-5 pt-4">
-            <CardTitle className="text-lg">Takvim</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Kayıtlı günlerde onaylı kontenjan ve fiyat görünür. Bekleyen rezervasyonlar uyarı ile işaretlenir.
-            </p>
-          </CardHeader>
-          <CardContent className="px-3 sm:px-4 pb-4">
-            <ScheduleMonthCalendar
-              month={month}
-              onMonthChange={setMonth}
-              selectedDates={selectedDates}
-              selectedTourId={tourId}
-              existingSchedulesByDate={existingSchedulesByDate}
-              dateOverrides={dateOverrides}
-              defaultCapacity={defaults.capacity}
-              defaultPricePlaceholder={defaultPricePlaceholder}
-              defaultChildPricePlaceholder={defaultChildPricePlaceholder}
-              templateDate={templateDate}
-              spreadMode={spreadMode}
-              onDayClick={handleDayClick}
-              onRemoveDate={removeDate}
-              onEditSchedule={handleEditSchedule}
-              onDeleteSchedule={handleDeleteSchedule}
-              onOverrideChange={updateOverride}
-            />
-          </CardContent>
-        </Card>
-
-        <div className="space-y-2 w-full xl:sticky xl:top-20 xl:max-w-[210px]">
-          <Card>
-            <CardHeader className="pb-1.5 px-3 pt-3">
-              <CardTitle className="text-sm font-semibold">Yeni Tarih</CardTitle>
-              <p className="text-[10px] text-muted-foreground">{selectedDates.size} gün seçili</p>
-            </CardHeader>
-            <CardContent className="px-3 pb-3 space-y-2.5">
-              {sortedSelected.length === 0 ? (
-                <p className="text-[10px] text-muted-foreground py-3 text-center rounded-md border border-dashed border-forest-200">
-                  Takvimden gün seçin
+            <div className="space-y-2 pt-1 border-t border-forest-100">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm text-muted-foreground">
+                  {selectedDates.size === 0
+                    ? "Takvimden gün seçin"
+                    : `${selectedDates.size} gün seçili`}
+                  {templateDate && (
+                    <span className="text-forest-700 font-medium capitalize">
+                      {" "}
+                      · Şablon: {formatDateLabel(templateDate)}
+                    </span>
+                  )}
                 </p>
-              ) : (
-                <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+              </div>
+
+              {sortedSelected.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
                   {sortedSelected.map((dateKey) => (
                     <span
                       key={dateKey}
                       className={cn(
-                        "inline-flex items-center gap-0.5 pl-1.5 pr-0.5 py-0.5 rounded-full text-[10px] font-medium border",
+                        "inline-flex items-center gap-1 pl-2 pr-1 py-1 rounded-full text-xs font-medium border",
                         hasCustomOverride(dateOverrides[dateKey])
                           ? "bg-sage-100 border-sage-300 text-forest-900"
                           : "bg-forest-50 border-forest-200 text-forest-800"
@@ -445,83 +473,43 @@ export function ScheduleCalendarForm({
                         onClick={() => removeDate(dateKey)}
                         aria-label="Kaldır"
                       >
-                        <X className="h-2.5 w-2.5" />
+                        <X className="h-3 w-3" />
                       </button>
                     </span>
                   ))}
                 </div>
-              )}
-              {templateDate && (
-                <p className="text-[10px] text-muted-foreground capitalize truncate">
-                  Şablon: {formatDateLabel(templateDate)}
+              ) : (
+                <p className="text-xs text-muted-foreground py-2">
+                  Seçilen günler burada görünür. Özel kontenjan veya fiyat için takvimde güne tıklayın.
                 </p>
               )}
+            </div>
+          </CardContent>
+        </Card>
 
-              <div className="border-t border-forest-100 pt-2 space-y-2">
-                <div className="space-y-1">
-                  <Label htmlFor="defaultCapacity" className="text-[10px]">
-                    Kontenjan
-                  </Label>
-                  <Input
-                    id="defaultCapacity"
-                    type="number"
-                    min={1}
-                    className="h-8 text-xs"
-                    value={defaults.capacity}
-                    onChange={(e) =>
-                      setDefaults((d) => ({ ...d, capacity: Number(e.target.value) || 1 }))
-                    }
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Yetişkin ₺</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    className="h-8 text-xs"
-                    placeholder={defaultPricePlaceholder}
-                    value={defaults.price}
-                    onChange={(e) => setDefaults((d) => ({ ...d, price: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label className="text-[10px]">Çocuk ₺</Label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    className="h-8 text-xs"
-                    placeholder={defaultChildPricePlaceholder}
-                    value={defaults.childPrice}
-                    onChange={(e) =>
-                      setDefaults((d) => ({ ...d, childPrice: e.target.value }))
-                    }
-                  />
-                </div>
-
-                <div className="flex items-center justify-between py-0.5">
-                  <Label htmlFor="active" className="text-[10px]">
-                    Aktif
-                  </Label>
-                  <Switch id="active" checked={isActive} onCheckedChange={setIsActive} />
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={isSubmitting || selectedDates.size === 0}
-                  className="w-full h-8 text-xs bg-forest-600 hover:bg-forest-700"
-                >
-                  {isSubmitting ? "..." : `${selectedDates.size} Tarih Oluştur`}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </form>
+        <Card className="min-w-0 overflow-hidden">
+          <CardContent className="p-3 sm:p-4 md:p-5">
+            <ScheduleMonthCalendar
+              month={month}
+              onMonthChange={setMonth}
+              selectedDates={selectedDates}
+              selectedTourId={tourId}
+              existingSchedulesByDate={existingSchedulesByDate}
+              dateOverrides={dateOverrides}
+              defaultCapacity={defaults.capacity}
+              defaultPricePlaceholder={defaultPricePlaceholder}
+              defaultChildPricePlaceholder={defaultChildPricePlaceholder}
+              templateDate={templateDate}
+              spreadMode={spreadMode}
+              onDayClick={handleDayClick}
+              onRemoveDate={removeDate}
+              onEditSchedule={handleEditSchedule}
+              onDeleteSchedule={handleDeleteSchedule}
+              onOverrideChange={updateOverride}
+            />
+          </CardContent>
+        </Card>
+      </form>
     </>
   );
 }

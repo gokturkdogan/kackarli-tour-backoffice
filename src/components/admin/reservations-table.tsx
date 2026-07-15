@@ -244,7 +244,7 @@ export function ReservationsTable({
       </div>
 
       <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg max-md:max-h-[90vh] max-md:overflow-y-auto">
           {selected && (
             <>
               <DialogHeader>
@@ -257,7 +257,7 @@ export function ReservationsTable({
               <div className="space-y-4">
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Durum</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-3 gap-2 max-md:grid-cols-2">
                     {MODAL_STATUS_OPTIONS.map((status) => {
                       const isActive = selected.status === status;
                       return (

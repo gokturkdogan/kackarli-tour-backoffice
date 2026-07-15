@@ -8,7 +8,7 @@ export function PageContent({
   className?: string;
 }) {
   return (
-    <div className={cn("p-4 sm:p-6 space-y-4 sm:space-y-6 min-w-0", className)}>
+    <div className={cn("p-6 space-y-6 min-w-0 max-md:p-4 max-md:space-y-4", className)}>
       {children}
     </div>
   );
