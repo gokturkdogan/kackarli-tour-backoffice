@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum TourType {
+  DAY_TRIP
+  ACCOMMODATION
+}
+
+enum ItineraryStopType {
+  BOARDING
+  STOP
+  REST
+  VIEWPOINT
+  MEAL
+}
+
+enum ReservationStatus {
+  PENDING
+  CONTACTED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tour {
+  id               String              @id @default(cuid())
+  title            String
+  slug             String              @unique
+  subtitle         String?
+  description      String              @db.Text
+  shortDescription String?
+  type             TourType
+  price            Decimal             @db.Decimal(10, 2)
+  childPrice       Decimal?            @db.Decimal(10, 2)
+  duration         String?
+  distance         String?
+  departureTime    String?
+  returnTime       String?
+  maxGroupSize     Int?
+  highlights       String?             @db.Text
+  coverImageUrl    String?
+  includedServices String?             @db.Text
+  excludedServices String?             @db.Text
+  boardingPoints   String?             @db.Text
+  isActive         Boolean             @default(true)
+  sortOrder        Int                 @default(0)
+  images           TourImage[]
+  schedules        TourSchedule[]
+  itinerary        TourItineraryItem[]
+  reservations     Reservation[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+model TourImage {
+  id        String   @id @default(cuid())
+  tourId    String
+  tour      Tour     @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  imageUrl  String
+  publicId  String?
+  altText   String?
+  sortOrder Int      @default(0)
+  isCover   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model TourSchedule {
+  id            String        @id @default(cuid())
+  tourId        String
+  tour          Tour          @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  startDate     DateTime
+  endDate       DateTime?
+  capacity      Int
+  reservedCount Int           @default(0)
+  price         Decimal?      @db.Decimal(10, 2)
+  childPrice    Decimal?      @db.Decimal(10, 2)
+  isActive      Boolean       @default(true)
+  reservations  Reservation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model TourItineraryItem {
+  id          String            @id @default(cuid())
+  tourId      String
+  tour        Tour              @relation(fields: [tourId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  stopType    ItineraryStopType @default(STOP)
+  time        String?
+  title       String
+  description String            @db.Text
+  duration    String?
+  imageUrl    String?
+  isFeatured  Boolean           @default(false)
+  sortOrder   Int               @default(0)
+}
+
+model Reservation {
+  id            String            @id @default(cuid())
+  firstName     String
+  lastName      String
+  phone         String
+  email         String
+  tourId        String
+  tour          Tour              @relation(fields: [tourId], references: [id])
+  scheduleId    String
+  schedule      TourSchedule      @relation(fields: [scheduleId], references: [id])
+  adultCount    Int
+  childCount    Int               @default(0)
+  boardingPoint String?
+  note          String?           @db.Text
+  totalPrice    Decimal           @db.Decimal(10, 2)
+  status        ReservationStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  content   String?   @db.Text
+  imageUrl  String?
+  publicId  String?
+  isPopup   Boolean   @default(false)
+  isActive  Boolean   @default(true)
+  startDate DateTime?
+  endDate   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  publicId  String?
+  altText   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}

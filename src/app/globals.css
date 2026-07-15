@@ -1,0 +1,239 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+
+  --color-forest-50: #f0f5f2;
+  --color-forest-100: #dce8e0;
+  --color-forest-200: #b8d1c1;
+  --color-forest-300: #8fb89f;
+  --color-forest-400: #5e9474;
+  --color-forest-500: #3d7358;
+  --color-forest-600: #2d5a44;
+  --color-forest-700: #234636;
+  --color-forest-800: #1b3d2f;
+  --color-forest-900: #142e24;
+
+  --color-sage-50: #f4f8f4;
+  --color-sage-100: #e4efe4;
+  --color-sage-200: #c8dfc8;
+  --color-sage-300: #a3c9a3;
+  --color-sage-400: #7aad7a;
+  --color-sage-500: #5a9159;
+
+  --color-cream: #f5f1e8;
+  --color-cream-dark: #e8e0d0;
+
+  --color-earth-100: #f0e8dc;
+  --color-earth-200: #ddd0bc;
+  --color-earth-300: #c4ad8f;
+  --color-earth-400: #a68b5b;
+  --color-earth-500: #8b6f47;
+  --color-earth-600: #6d5638;
+
+  --color-mist: #eef2ef;
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #f5f1e8;
+  --foreground: #142e24;
+  --card: #ffffff;
+  --card-foreground: #142e24;
+  --popover: #ffffff;
+  --popover-foreground: #142e24;
+  --primary: #1b3d2f;
+  --primary-foreground: #f5f1e8;
+  --secondary: #e4efe4;
+  --secondary-foreground: #1b3d2f;
+  --muted: #eef2ef;
+  --muted-foreground: #5e9474;
+  --accent: #dce8e0;
+  --accent-foreground: #1b3d2f;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #dce8e0;
+  --input: #dce8e0;
+  --ring: #3d7358;
+  --chart-1: #2d5a44;
+  --chart-2: #5a9159;
+  --chart-3: #8b6f47;
+  --chart-4: #a68b5b;
+  --chart-5: #1b3d2f;
+  --radius: 0.625rem;
+  --sidebar: #f5f1e8;
+  --sidebar-foreground: #142e24;
+  --sidebar-primary: #1b3d2f;
+  --sidebar-primary-foreground: #f5f1e8;
+  --sidebar-accent: #dce8e0;
+  --sidebar-accent-foreground: #1b3d2f;
+  --sidebar-border: #dce8e0;
+  --sidebar-ring: #3d7358;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans scroll-smooth overflow-x-hidden;
+  }
+  body {
+    @apply bg-background text-foreground overflow-x-hidden min-w-0;
+  }
+  button:not(:disabled),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    @apply cursor-pointer;
+  }
+  button:disabled,
+  [type="button"]:disabled,
+  [type="submit"]:disabled,
+  [type="reset"]:disabled {
+    @apply cursor-not-allowed;
+  }
+}
+
+@keyframes hero-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.08); }
+}
+
+@keyframes mist-1 {
+  0%, 100% { transform: translateX(0) translateY(0); opacity: 0.3; }
+  50% { transform: translateX(30px) translateY(-10px); opacity: 0.5; }
+}
+
+@keyframes mist-2 {
+  0%, 100% { transform: translateX(0) translateY(0); opacity: 0.2; }
+  50% { transform: translateX(-40px) translateY(20px); opacity: 0.4; }
+}
+
+@keyframes mist-3 {
+  0%, 100% { transform: translateX(0); opacity: 0.15; }
+  50% { transform: translateX(20px); opacity: 0.3; }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(8px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
+}
+
+.animate-hero-zoom {
+  animation: hero-zoom 20s ease-in-out infinite alternate;
+}
+
+.animate-mist-1 {
+  animation: mist-1 12s ease-in-out infinite;
+}
+
+.animate-mist-2 {
+  animation: mist-2 16s ease-in-out infinite;
+}
+
+.animate-mist-3 {
+  animation: mist-3 10s ease-in-out infinite;
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2.5s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 2.5s ease-in-out infinite;
+}
+
+#tur-rezervasyon[data-highlight="true"] .booking-card {
+  animation: booking-cta-highlight 0.9s ease-in-out 2;
+}
+
+@keyframes booking-cta-highlight {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 25px 50px -12px rgb(20 46 36 / 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow:
+      0 25px 50px -12px rgb(20 46 36 / 0.15),
+      0 0 0 4px rgb(134 169 137 / 0.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-hero-zoom,
+  .animate-mist-1,
+  .animate-mist-2,
+  .animate-mist-3,
+  .animate-marquee,
+  .animate-bounce-slow,
+  .animate-float {
+    animation: none;
+  }
+
+  #tur-rezervasyon[data-highlight="true"] .booking-card {
+    animation: none;
+    box-shadow:
+      0 25px 50px -12px rgb(20 46 36 / 0.15),
+      0 0 0 4px rgb(134 169 137 / 0.35);
+  }
+}
