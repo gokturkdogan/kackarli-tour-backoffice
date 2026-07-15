@@ -24,21 +24,21 @@ export default async function AdminDashboardPage() {
       value: stats.tourCount,
       description: `${stats.activeTours} aktif`,
       icon: Map,
-      href: "/admin/tours",
+      href: "/tours",
     },
     {
       title: "Bekleyen Rezervasyon",
       value: stats.pendingReservations,
       description: "Onay bekliyor",
       icon: BookOpen,
-      href: "/admin/reservations",
+      href: "/reservations",
     },
     {
       title: "Tur Tarihleri",
       value: stats.scheduleCount,
       description: "Aktif tarihler",
       icon: Calendar,
-      href: "/admin/schedules",
+      href: "/schedules",
     },
   ];
 
@@ -78,7 +78,7 @@ export default async function AdminDashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-3">
             <Link
-              href="/admin/tours/new"
+              href="/tours/new"
               className="inline-flex items-center px-4 py-2 rounded-lg bg-forest-600 text-cream text-sm font-medium hover:bg-forest-700 transition-colors"
             >
               Yeni Tur Ekle

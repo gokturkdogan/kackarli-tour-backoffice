@@ -24,7 +24,7 @@ export default async function SchedulesPage() {
               Tur tarihi eklemek için önce aktif bir tur oluşturmalısınız.
             </p>
             <Link
-              href="/admin/tours/new"
+              href="/tours/new"
               className={cn(buttonVariants(), "bg-forest-600 hover:bg-forest-700")}
             >
               Yeni Tur Oluştur

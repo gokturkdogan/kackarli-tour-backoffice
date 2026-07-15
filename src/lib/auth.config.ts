@@ -2,17 +2,17 @@ import type { NextAuthConfig } from "next-auth";
 
 export const authConfig = {
   pages: {
-    signIn: "/admin/login",
+    signIn: "/login",
   },
   session: { strategy: "jwt" },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoginPage = nextUrl.pathname === "/admin/login";
+      const isLoginPage = nextUrl.pathname === "/login";
       const isAdmin = auth?.user?.role === "ADMIN";
 
       if (isLoginPage) {
         if (isAdmin) {
-          return Response.redirect(new URL("/admin", nextUrl));
+          return Response.redirect(new URL("/", nextUrl));
         }
         return true;
       }

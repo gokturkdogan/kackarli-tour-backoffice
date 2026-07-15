@@ -63,7 +63,7 @@ export function TourActions({ tour }: { tour: Tour }) {
           İşlemler
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem render={<Link href={`/admin/tours/${tour.id}/edit`} />}>
+          <DropdownMenuItem render={<Link href={`/tours/${tour.id}/edit`} />}>
             <Pencil className="h-4 w-4 mr-2" />
             Düzenle
           </DropdownMenuItem>

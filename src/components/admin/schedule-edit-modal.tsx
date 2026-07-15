@@ -99,13 +99,18 @@ export function ScheduleEditModal({ target, onClose }: ScheduleEditModalProps) {
 
           {schedule && (
             <div className="space-y-4 py-2">
-              <div className="rounded-lg bg-mist/60 border border-forest-100 px-3 py-2 text-sm">
+              <div className="rounded-lg bg-mist/60 border border-forest-100 px-3 py-2 text-sm space-y-1">
                 <p className="text-muted-foreground">
-                  Rezerve:{" "}
+                  Onaylı rezervasyon:{" "}
                   <span className="font-semibold text-forest-900">
                     {schedule.reservedCount} / {schedule.capacity}
                   </span>
                 </p>
+                {schedule.pendingCount > 0 && (
+                  <p className="text-amber-800 text-xs font-medium">
+                    {schedule.pendingCount} kişilik bekleyen rezervasyon var
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   Tur fiyatı: {formatPrice(schedule.tourPrice)}
                   {schedule.tourChildPrice != null &&
@@ -125,7 +130,7 @@ export function ScheduleEditModal({ target, onClose }: ScheduleEditModalProps) {
                 />
                 {schedule.reservedCount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    En az {schedule.reservedCount} olmalı (mevcut rezervasyonlar)
+                    En az {schedule.reservedCount} olmalı (onaylı rezervasyonlar)
                   </p>
                 )}
               </div>

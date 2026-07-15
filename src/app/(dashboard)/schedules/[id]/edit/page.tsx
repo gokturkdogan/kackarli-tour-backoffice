@@ -6,5 +6,5 @@ interface EditSchedulePageProps {
 
 export default async function EditSchedulePage({ params }: EditSchedulePageProps) {
   await params;
-  redirect("/admin/schedules");
+  redirect("/schedules");
 }

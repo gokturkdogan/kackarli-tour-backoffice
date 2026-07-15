@@ -72,7 +72,7 @@ export async function createTour(
       },
     });
 
-    revalidatePath("/admin/tours");
+    revalidatePath("/tours");
     revalidatePath("/");
     revalidatePath("/turlar");
     return { success: true, data: { id: tour.id } };
@@ -130,8 +130,8 @@ export async function updateTour(
       });
     });
 
-    revalidatePath("/admin/tours");
-    revalidatePath(`/admin/tours/${id}/edit`);
+    revalidatePath("/tours");
+    revalidatePath(`/tours/${id}/edit`);
     revalidatePath("/");
     revalidatePath("/turlar");
     revalidatePath(`/turlar/${parsed.data.slug}`);
@@ -152,7 +152,7 @@ export async function toggleTourActive(id: string): Promise<ActionResult> {
       where: { id },
       data: { isActive: !tour.isActive },
     });
-    revalidatePath("/admin/tours");
+    revalidatePath("/tours");
     return { success: true };
   } catch {
     return { success: false, error: "Durum güncellenirken bir hata oluştu" };
@@ -175,7 +175,7 @@ export async function deleteTour(id: string): Promise<ActionResult> {
       }
     }
 
-    revalidatePath("/admin/tours");
+    revalidatePath("/tours");
     return { success: true };
   } catch {
     return { success: false, error: "Tur silinirken bir hata oluştu" };
@@ -218,7 +218,7 @@ export async function addTourImage(
       });
     });
 
-    revalidatePath(`/admin/tours/${tourId}/edit`);
+    revalidatePath(`/tours/${tourId}/edit`);
     return { success: true, data: { id: image.id } };
   } catch {
     return { success: false, error: "Görsel eklenirken bir hata oluştu" };
@@ -267,7 +267,7 @@ export async function deleteTourImage(imageId: string): Promise<ActionResult> {
       }
     }
 
-    revalidatePath(`/admin/tours/${image.tourId}/edit`);
+    revalidatePath(`/tours/${image.tourId}/edit`);
     return { success: true };
   } catch {
     return { success: false, error: "Görsel silinirken bir hata oluştu" };
@@ -297,7 +297,7 @@ export async function setTourCoverImage(imageId: string): Promise<ActionResult> 
       }),
     ]);
 
-    revalidatePath(`/admin/tours/${image.tourId}/edit`);
+    revalidatePath(`/tours/${image.tourId}/edit`);
     return { success: true };
   } catch {
     return { success: false, error: "Kapak görseli güncellenirken bir hata oluştu" };

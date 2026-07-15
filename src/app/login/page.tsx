@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
       if (result?.error) {
         toast.error("E-posta veya şifre hatalı");
       } else {
-        router.push("/admin");
+        router.push("/");
         router.refresh();
       }
     } catch {

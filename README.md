@@ -15,7 +15,7 @@ npm run db:seed
 npm run dev
 ```
 
-- Panel: http://localhost:3001/admin
+- Panel: http://localhost:3001
 - Giriş: `admin@kackarlitur.com` / `admin123456` (seed varsayılanı)
 
 ## Ortam değişkenleri
@@ -27,6 +27,23 @@ npm run dev
 | `AUTH_URL` | Backoffice URL (ör. `http://localhost:3001`) |
 | `CLOUDINARY_*` | Tur görseli yükleme |
 | `ADMIN_*` | İlk admin kullanıcısı (seed) |
+| `SMTP_*` | Google SMTP ile rezervasyon e-postaları |
+
+## E-posta (Google SMTP)
+
+Gmail için [Uygulama Şifresi](https://myaccount.google.com/apppasswords) oluşturun ve `.env` dosyasına ekleyin:
+
+```
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=xxxx xxxx xxxx xxxx
+SMTP_FROM_NAME=Kaçkarlı Tur
+SMTP_FROM_EMAIL=your-email@gmail.com
+```
+
+Rezervasyon oluşturulduğunda, onaylandığında ve iptal edildiğinde müşteriye otomatik e-posta gönderilir.
 
 ## Migrasyonlar
 

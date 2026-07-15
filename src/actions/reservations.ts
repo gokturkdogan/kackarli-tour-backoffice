@@ -7,6 +7,18 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { reservationStatusUpdateSchema } from "@/lib/validations";
 import type { ActionResult } from "@/actions/types";
+import {
+  buildReservationEmailData,
+  sendReservationStatusEmail,
+  type ReservationEmailVariant,
+} from "@/lib/emails/reservation-email";
+
+const STATUS_EMAIL_VARIANT: Partial<Record<ReservationStatus, ReservationEmailVariant>> = {
+  CONTACTED: "contacted",
+  CONFIRMED: "confirmed",
+  CANCELLED: "cancelled",
+  COMPLETED: "completed",
+};
 
 export interface AdminReservation {
   id: string;
@@ -73,6 +85,31 @@ function mapReservation(
   };
 }
 
+const reservationEmailInclude = {
+  tour: {
+    select: {
+      title: true,
+      subtitle: true,
+      duration: true,
+      departureTime: true,
+      returnTime: true,
+      includedServices: true,
+      itinerary: {
+        orderBy: [{ sortOrder: "asc" as const }, { dayNumber: "asc" as const }],
+        select: {
+          time: true,
+          title: true,
+          duration: true,
+          stopType: true,
+          sortOrder: true,
+          dayNumber: true,
+        },
+      },
+    },
+  },
+  schedule: { select: { startDate: true, endDate: true } },
+};
+
 const reservationInclude = {
   tour: { select: { id: true, title: true, slug: true } },
   schedule: { select: { id: true, startDate: true, endDate: true } },
@@ -101,6 +138,8 @@ export async function updateReservationStatus(
       return { success: false, error: parsed.error.issues[0]?.message ?? "Geçersiz veri" };
     }
 
+    let statusChanged = false;
+
     await prisma.$transaction(async (tx) => {
       const reservation = await tx.reservation.findUnique({
         where: { id: parsed.data.id },
@@ -115,11 +154,13 @@ export async function updateReservationStatus(
         return;
       }
 
-      const guestCount = reservation.adultCount + reservation.childCount;
-      const wasCancelled = reservation.status === "CANCELLED";
-      const willCancel = parsed.data.status === "CANCELLED";
+      statusChanged = true;
 
-      if (!wasCancelled && willCancel) {
+      const guestCount = reservation.adultCount + reservation.childCount;
+      const wasConfirmed = reservation.status === "CONFIRMED";
+      const willConfirm = parsed.data.status === "CONFIRMED";
+
+      if (wasConfirmed && !willConfirm) {
         await tx.tourSchedule.update({
           where: { id: reservation.scheduleId },
           data: {
@@ -128,7 +169,7 @@ export async function updateReservationStatus(
         });
       }
 
-      if (wasCancelled && !willCancel) {
+      if (!wasConfirmed && willConfirm) {
         const schedule = reservation.schedule;
         const spotsLeft = schedule.capacity - schedule.reservedCount;
         if (guestCount > spotsLeft) {
@@ -149,9 +190,28 @@ export async function updateReservationStatus(
       });
     });
 
-    revalidatePath("/admin/reservations");
-    revalidatePath("/admin/schedules");
-    revalidatePath("/admin");
+    const emailVariant = statusChanged
+      ? STATUS_EMAIL_VARIANT[parsed.data.status]
+      : undefined;
+    if (emailVariant) {
+      const reservation = await prisma.reservation.findUnique({
+        where: { id: parsed.data.id },
+        include: reservationEmailInclude,
+      });
+
+      if (reservation) {
+        const emailData = buildReservationEmailData(reservation);
+        try {
+          await sendReservationStatusEmail(emailVariant, emailData);
+        } catch (error) {
+          console.error("[mail] Rezervasyon durum e-postası gönderilemedi:", error);
+        }
+      }
+    }
+
+    revalidatePath("/reservations");
+    revalidatePath("/schedules");
+    revalidatePath("/");
 
     return { success: true, data: undefined };
   } catch (error) {

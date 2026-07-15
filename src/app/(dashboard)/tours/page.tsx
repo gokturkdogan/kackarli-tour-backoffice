@@ -26,7 +26,7 @@ export default async function ToursPage() {
       <div className="p-6 space-y-4">
         <div className="flex justify-end">
           <Link
-            href="/admin/tours/new"
+            href="/tours/new"
             className={cn(buttonVariants(), "bg-forest-600 hover:bg-forest-700")}
           >
             <Plus className="h-4 w-4 mr-2" />

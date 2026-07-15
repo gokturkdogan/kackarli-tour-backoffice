@@ -89,9 +89,9 @@ export function TourForm({ initialData }: TourFormProps) {
     if (result.success) {
       toast.success(isEditing ? "Tur güncellendi" : "Tur oluşturuldu");
       if (!isEditing && result.data?.id) {
-        router.push(`/admin/tours/${result.data.id}/edit`);
+        router.push(`/tours/${result.data.id}/edit`);
       } else {
-        router.push("/admin/tours");
+        router.push("/tours");
       }
       router.refresh();
     } else {

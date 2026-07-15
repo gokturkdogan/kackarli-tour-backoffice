@@ -28,14 +28,14 @@ import {
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { title: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { title: "Turlar", href: "/admin/tours", icon: Map },
-  { title: "Tur Tarihleri", href: "/admin/schedules", icon: Calendar },
-  { title: "Rezervasyonlar", href: "/admin/reservations", icon: BookOpen },
-  { title: "Duyurular", href: "/admin/announcements", icon: Megaphone, disabled: true },
-  { title: "Galeri", href: "/admin/gallery", icon: Image, disabled: true },
-  { title: "Ana Sayfa", href: "/admin/homepage", icon: Home, disabled: true },
-  { title: "Site Ayarları", href: "/admin/settings", icon: Settings, disabled: true },
+  { title: "Dashboard", href: "/", icon: LayoutDashboard },
+  { title: "Turlar", href: "/tours", icon: Map },
+  { title: "Tur Tarihleri", href: "/schedules", icon: Calendar },
+  { title: "Rezervasyonlar", href: "/reservations", icon: BookOpen },
+  { title: "Duyurular", href: "/announcements", icon: Megaphone, disabled: true },
+  { title: "Galeri", href: "/gallery", icon: Image, disabled: true },
+  { title: "Ana Sayfa", href: "/homepage", icon: Home, disabled: true },
+  { title: "Site Ayarları", href: "/settings", icon: Settings, disabled: true },
 ];
 
 export function AdminSidebar() {
@@ -44,7 +44,7 @@ export function AdminSidebar() {
   return (
     <Sidebar className="border-r border-forest-800/20">
       <SidebarHeader className="border-b border-forest-800/20 px-4 py-4">
-        <Link href="/admin" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-forest-600">
             <Mountain className="h-5 w-5 text-cream" />
           </div>
@@ -72,8 +72,8 @@ export function AdminSidebar() {
                     <SidebarMenuButton
                       render={<Link href={item.href} />}
                       isActive={
-                        item.href === "/admin"
-                          ? pathname === "/admin"
+                        item.href === "/"
+                          ? pathname === "/"
                           : pathname.startsWith(item.href)
                       }
                     >
@@ -88,12 +88,7 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-forest-800/20 p-4">
-        <Link
-          href="/"
-          className="text-xs text-muted-foreground hover:text-forest-600 transition-colors"
-        >
-          ← Siteye Dön
-        </Link>
+        <p className="text-xs text-muted-foreground">Kaçkarlı Tur Yönetim Paneli</p>
       </SidebarFooter>
     </Sidebar>
   );

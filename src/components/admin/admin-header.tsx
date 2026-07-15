@@ -39,7 +39,7 @@ export function AdminHeader({ title, description }: AdminHeaderProps) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem
-            onClick={() => signOut({ callbackUrl: "/admin/login" })}
+            onClick={() => signOut({ callbackUrl: "/login" })}
             className="text-destructive cursor-pointer"
           >
             <LogOut className="h-4 w-4 mr-2" />

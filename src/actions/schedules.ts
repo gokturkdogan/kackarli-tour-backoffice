@@ -59,6 +59,7 @@ export type CalendarExistingSchedule = {
   tourTitle: string;
   capacity: number;
   reservedCount: number;
+  pendingCount: number;
   price: number | null;
   childPrice: number | null;
   tourPrice: number;
@@ -66,39 +67,77 @@ export type CalendarExistingSchedule = {
   isActive: boolean;
 };
 
+function guestSum(adultCount: number | null, childCount: number | null): number {
+  return (adultCount ?? 0) + (childCount ?? 0);
+}
+
+async function getReservationGuestCountsBySchedule() {
+  const stats = await prisma.reservation.groupBy({
+    by: ["scheduleId", "status"],
+    where: {
+      status: { in: ["CONFIRMED", "PENDING"] },
+    },
+    _sum: {
+      adultCount: true,
+      childCount: true,
+    },
+  });
+
+  const map = new Map<string, { confirmed: number; pending: number }>();
+
+  for (const stat of stats) {
+    const guests = guestSum(stat._sum.adultCount, stat._sum.childCount);
+    const entry = map.get(stat.scheduleId) ?? { confirmed: 0, pending: 0 };
+
+    if (stat.status === "CONFIRMED") {
+      entry.confirmed += guests;
+    } else if (stat.status === "PENDING") {
+      entry.pending += guests;
+    }
+
+    map.set(stat.scheduleId, entry);
+  }
+
+  return map;
+}
+
 export async function getExistingSchedulesByDate(): Promise<
   Record<string, CalendarExistingSchedule[]>
 > {
-  const schedules = await prisma.tourSchedule.findMany({
-    select: {
-      id: true,
-      tourId: true,
-      startDate: true,
-      capacity: true,
-      reservedCount: true,
-      price: true,
-      childPrice: true,
-      isActive: true,
-      tour: {
-        select: {
-          title: true,
-          price: true,
-          childPrice: true,
+  const [schedules, reservationCounts] = await Promise.all([
+    prisma.tourSchedule.findMany({
+      select: {
+        id: true,
+        tourId: true,
+        startDate: true,
+        capacity: true,
+        price: true,
+        childPrice: true,
+        isActive: true,
+        tour: {
+          select: {
+            title: true,
+            price: true,
+            childPrice: true,
+          },
         },
       },
-    },
-    orderBy: [{ startDate: "asc" }],
-  });
+      orderBy: [{ startDate: "asc" }],
+    }),
+    getReservationGuestCountsBySchedule(),
+  ]);
 
   const map: Record<string, CalendarExistingSchedule[]> = {};
   for (const schedule of schedules) {
     const dateKey = toDateInputValue(schedule.startDate);
+    const counts = reservationCounts.get(schedule.id) ?? { confirmed: 0, pending: 0 };
     const entry: CalendarExistingSchedule = {
       id: schedule.id,
       tourId: schedule.tourId,
       tourTitle: schedule.tour.title,
       capacity: schedule.capacity,
-      reservedCount: schedule.reservedCount,
+      reservedCount: counts.confirmed,
+      pendingCount: counts.pending,
       price: schedule.price ? Number(schedule.price) : null,
       childPrice: schedule.childPrice ? Number(schedule.childPrice) : null,
       tourPrice: Number(schedule.tour.price),
@@ -172,7 +211,7 @@ export async function createSchedulesBulk(
       })
     );
 
-    revalidatePath("/admin/schedules");
+    revalidatePath("/schedules");
     revalidatePath("/");
     revalidatePath("/turlar");
     revalidatePath("/rezervasyon");
@@ -223,7 +262,7 @@ export async function createSchedule(
       },
     });
 
-    revalidatePath("/admin/schedules");
+    revalidatePath("/schedules");
     revalidatePath("/");
     revalidatePath("/turlar");
     return { success: true, data: { id: schedule.id } };
@@ -268,10 +307,17 @@ export async function updateSchedule(
       return { success: false, error: "Bu tur için aynı tarihte zaten bir program var" };
     }
 
-    if (parsed.data.capacity < existing.reservedCount) {
+    const confirmedGuests = await prisma.reservation.aggregate({
+      where: { scheduleId: id, status: "CONFIRMED" },
+      _sum: { adultCount: true, childCount: true },
+    });
+    const confirmedCount =
+      (confirmedGuests._sum.adultCount ?? 0) + (confirmedGuests._sum.childCount ?? 0);
+
+    if (parsed.data.capacity < confirmedCount) {
       return {
         success: false,
-        error: `Kapasite, mevcut rezervasyon sayısından (${existing.reservedCount}) az olamaz`,
+        error: `Kapasite, onaylı rezervasyon sayısından (${confirmedCount}) az olamaz`,
       };
     }
 
@@ -288,7 +334,7 @@ export async function updateSchedule(
       },
     });
 
-    revalidatePath("/admin/schedules");
+    revalidatePath("/schedules");
     revalidatePath("/");
     revalidatePath("/turlar");
     revalidatePath("/rezervasyon");
@@ -311,7 +357,7 @@ export async function toggleScheduleActive(id: string): Promise<ActionResult> {
       data: { isActive: !schedule.isActive },
     });
 
-    revalidatePath("/admin/schedules");
+    revalidatePath("/schedules");
     return { success: true };
   } catch {
     return { success: false, error: "Durum güncellenirken bir hata oluştu" };
@@ -344,7 +390,7 @@ export async function deleteSchedule(id: string): Promise<ActionResult> {
 
     await prisma.tourSchedule.delete({ where: { id } });
 
-    revalidatePath("/admin/schedules");
+    revalidatePath("/schedules");
     revalidatePath("/");
     revalidatePath("/turlar");
     revalidatePath("/rezervasyon");

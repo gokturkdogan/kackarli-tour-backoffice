@@ -377,7 +377,7 @@ export function ScheduleCalendarForm({
           <CardHeader className="pb-2 px-4 sm:px-5 pt-4">
             <CardTitle className="text-lg">Takvim</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Kayıtlı günlerde durum, kontenjan ve fiyat görünür.
+              Kayıtlı günlerde onaylı kontenjan ve fiyat görünür. Bekleyen rezervasyonlar uyarı ile işaretlenir.
             </p>
           </CardHeader>
           <CardContent className="px-3 sm:px-4 pb-4">
