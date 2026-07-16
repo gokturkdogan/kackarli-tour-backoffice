@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Bell, Pencil, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pencil, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,7 @@ interface ScheduleMonthCalendarProps {
   defaultPricePlaceholder: string;
   defaultChildPricePlaceholder: string;
   templateDate?: string | null;
-  spreadMode?: boolean;
+  useCustomChildPrice?: boolean;
   onDayClick: (dateKey: string) => void;
   onRemoveDate: (dateKey: string) => void;
   onEditSchedule: (schedule: CalendarExistingSchedule, dateKey: string) => void;
@@ -104,9 +104,16 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
-function hasCustomOverride(override?: DateOverrideFields): boolean {
+function hasCustomOverride(
+  override?: DateOverrideFields,
+  includeChildPrice = true
+): boolean {
   if (!override) return false;
-  return !!(override.capacity?.trim() || override.price?.trim() || override.childPrice?.trim());
+  return !!(
+    override.capacity?.trim() ||
+    override.price?.trim() ||
+    (includeChildPrice && override.childPrice?.trim())
+  );
 }
 
 function truncateLabel(text: string, max = 11): string {
@@ -138,19 +145,6 @@ function formatCompactPrice(price: number): string {
   return `${new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(price)}₺`;
 }
 
-function ActiveStatusBadge({ isActive }: { isActive: boolean }) {
-  return (
-    <span
-      className={cn(
-        "rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide",
-        isActive ? "bg-forest-600 text-white" : "bg-slate-500 text-white"
-      )}
-    >
-      {isActive ? "Aktif" : "Pasif"}
-    </span>
-  );
-}
-
 function ScheduleManageButtons({
   onEdit,
   onDelete,
@@ -160,42 +154,40 @@ function ScheduleManageButtons({
 }) {
   return (
     <div className="flex items-center gap-0.5">
-      <button
+      <Button
         type="button"
+        size="icon"
+        variant="ghost"
+        className="h-6 w-6 text-forest-700 hover:bg-white/80"
+        aria-label="Düzenle"
         onClick={(e) => {
           e.stopPropagation();
           onEdit();
         }}
-        className="inline-flex items-center gap-0.5 rounded px-2 py-1 text-[10px] font-semibold text-forest-700 bg-white border border-forest-200 hover:bg-forest-50 transition-colors cursor-pointer shadow-sm"
       >
         <Pencil className="h-3 w-3" />
-        Düzenle
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        size="icon"
+        variant="ghost"
+        className="h-6 w-6 text-rose-700 hover:bg-white/80"
+        aria-label="Sil"
         onClick={(e) => {
           e.stopPropagation();
           onDelete();
         }}
-        className="inline-flex items-center gap-0.5 rounded px-2 py-1 text-[10px] font-semibold text-rose-700 bg-white border border-rose-200 hover:bg-rose-50 transition-colors cursor-pointer shadow-sm"
       >
         <Trash2 className="h-3 w-3" />
-        Sil
-      </button>
+      </Button>
     </div>
   );
 }
 
 function BookedScheduleCard({
   schedule,
-  canManage,
-  onEdit,
-  onDelete,
 }: {
   schedule: CalendarExistingSchedule;
-  canManage: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
 }) {
   const adultPrice = resolveAdultPrice(schedule.price, schedule.tourPrice);
   const childPrice = resolveChildPrice(
@@ -217,29 +209,15 @@ function BookedScheduleCard({
     >
       <div
         className={cn(
-          "flex items-start justify-between gap-1.5 px-2.5 py-1.5 border-b",
+          "px-2.5 py-1.5 border-b",
           schedule.isActive
             ? "bg-gradient-to-r from-rose-100 to-rose-50 border-rose-100"
             : "bg-gradient-to-r from-slate-100 to-slate-50 border-slate-200"
         )}
       >
-        <p className="text-xs font-semibold leading-snug text-rose-950 line-clamp-2 flex-1 min-w-0">
+        <p className="text-xs font-semibold leading-snug text-rose-950 line-clamp-2">
           {schedule.tourTitle}
         </p>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <div className="flex flex-wrap justify-end gap-0.5">
-            <ActiveStatusBadge isActive={schedule.isActive} />
-            <span
-              className={cn(
-                "rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white",
-                isFull ? "bg-rose-600" : "bg-amber-600"
-              )}
-            >
-              {isFull ? "Dolu" : "Açık"}
-            </span>
-          </div>
-          {canManage && <ScheduleManageButtons onEdit={onEdit} onDelete={onDelete} />}
-        </div>
       </div>
 
       <div className="px-2.5 py-2 space-y-2">
@@ -316,13 +294,12 @@ function OtherTourScheduleCard({
           {truncateLabel(schedule.tourTitle, 18)}
         </span>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <div className="flex flex-wrap justify-end gap-0.5">
-            <ActiveStatusBadge isActive={schedule.isActive} />
+          <div className="flex flex-wrap justify-end gap-0.5 items-center">
             <span className="text-[9px] font-medium text-sage-700 bg-sage-100 px-1.5 py-0.5 rounded">
               Başka tur
             </span>
+            {canManage && <ScheduleManageButtons onEdit={onEdit} onDelete={onDelete} />}
           </div>
-          {canManage && <ScheduleManageButtons onEdit={onEdit} onDelete={onDelete} />}
         </div>
       </div>
       <div className="flex items-center justify-between text-[11px] tabular-nums">
@@ -352,7 +329,7 @@ export function ScheduleMonthCalendar({
   defaultPricePlaceholder,
   defaultChildPricePlaceholder,
   templateDate,
-  spreadMode = false,
+  useCustomChildPrice = false,
   onDayClick,
   onRemoveDate,
   onEditSchedule,
@@ -399,6 +376,7 @@ export function ScheduleMonthCalendar({
         defaultPricePlaceholder={defaultPricePlaceholder}
         defaultChildPricePlaceholder={defaultChildPricePlaceholder}
         templateDate={templateDate}
+        useCustomChildPrice={useCustomChildPrice}
         onDayClick={onDayClick}
         onRemoveDate={onRemoveDate}
         onEditSchedule={onEditSchedule}
@@ -427,7 +405,7 @@ export function ScheduleMonthCalendar({
           const isToday = isSameDay(date, today);
           const isAvailable = inMonth && !isPast && !isBooked && !isSelected;
           const override = dateOverrides[dateKey];
-          const isCustom = hasCustomOverride(override);
+          const isCustom = hasCustomOverride(override, useCustomChildPrice);
           const currentTourSchedule = existingOnDay.find((s) => s.tourId === selectedTourId);
           const hasExisting = inMonth && existingOnDay.length > 0;
           const cellHasDetail = isSelected || hasExisting || isAvailable;
@@ -436,11 +414,6 @@ export function ScheduleMonthCalendar({
 
           const isClickable = isAvailable || isSelected;
           const canManageExisting = inMonth && !isPast;
-
-          const dayPendingCount = existingOnDay.reduce(
-            (sum, schedule) => sum + schedule.pendingCount,
-            0
-          );
 
           return (
             <div
@@ -511,18 +484,17 @@ export function ScheduleMonthCalendar({
                     Şablon
                   </span>
                 )}
-                {bookedCellTall && (
-                  <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[8px] font-bold uppercase tracking-wide text-white shadow-sm">
-                    Kayıtlı
-                  </span>
-                )}
-                {dayPendingCount > 0 && (
-                  <span
-                    className="inline-flex items-center justify-center rounded-full bg-amber-500 p-1 text-white shadow-sm"
-                    title={`${dayPendingCount} bekleyen rezervasyon`}
+                {bookedCellTall && currentTourSchedule && canManageExisting && (
+                  <div
+                    className="pointer-events-auto shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                    onPointerDown={(e) => e.stopPropagation()}
                   >
-                    <Bell className="h-2.5 w-2.5" />
-                  </span>
+                    <ScheduleManageButtons
+                      onEdit={() => onEditSchedule(currentTourSchedule, dateKey)}
+                      onDelete={() => onDeleteSchedule(currentTourSchedule, dateKey)}
+                    />
+                  </div>
                 )}
                 {isAvailable && (
                   <span
@@ -548,12 +520,7 @@ export function ScheduleMonthCalendar({
                   onClick={(e) => e.stopPropagation()}
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <BookedScheduleCard
-                    schedule={currentTourSchedule}
-                    canManage={canManageExisting}
-                    onEdit={() => onEditSchedule(currentTourSchedule, dateKey)}
-                    onDelete={() => onDeleteSchedule(currentTourSchedule, dateKey)}
-                  />
+                  <BookedScheduleCard schedule={currentTourSchedule} />
                 </div>
               )}
 
@@ -611,15 +578,17 @@ export function ScheduleMonthCalendar({
                       min={0}
                       step="0.01"
                     />
-                    <CalendarCellField
-                      id={`${dateKey}-childPrice`}
-                      label="Çocuk ₺"
-                      hint={defaultChildPricePlaceholder}
-                      value={override?.childPrice ?? ""}
-                      onChange={(v) => onOverrideChange(dateKey, "childPrice", v)}
-                      min={0}
-                      step="0.01"
-                    />
+                    {useCustomChildPrice && (
+                      <CalendarCellField
+                        id={`${dateKey}-childPrice`}
+                        label="Çocuk ₺"
+                        hint={defaultChildPricePlaceholder}
+                        value={override?.childPrice ?? ""}
+                        onChange={(v) => onOverrideChange(dateKey, "childPrice", v)}
+                        min={0}
+                        step="0.01"
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -651,19 +620,6 @@ export function ScheduleMonthCalendar({
           <span className="w-3 h-3 rounded bg-sage-50 border border-sage-200" />
           Başka tur kayıtlı
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-forest-600" />
-          Aktif
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded bg-slate-500" />
-          Pasif
-        </span>
-        <span className="inline-flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-full bg-amber-500" />
-          Bekleyen rezervasyon
-        </span>
-        {spreadMode && <span className="text-sage-700 font-medium">Yayma modu aktif</span>}
       </div>
     </div>
   );

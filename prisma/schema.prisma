@@ -33,6 +33,21 @@ enum ReservationStatus {
   COMPLETED
 }
 
+enum OrganizationLeadSource {
+  PHONE
+  WHATSAPP
+  INSTAGRAM
+  FACEBOOK
+  OTHER
+}
+
+enum OrganizationStatus {
+  PLANNED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 model User {
   id                String             @id @default(cuid())
   name              String?
@@ -41,7 +56,8 @@ model User {
   role              Role               @default(USER)
   image             String?
   pushSubscriptions PushSubscription[]
-  createdAt         DateTime           @default(now())
+  organizations     Organization[]
+  createdAt           DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
 
@@ -84,6 +100,7 @@ model Tour {
   schedules        TourSchedule[]
   itinerary        TourItineraryItem[]
   reservations     Reservation[]
+  organizations    Organization[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 }
@@ -112,6 +129,7 @@ model TourSchedule {
   childPrice    Decimal?      @db.Decimal(10, 2)
   isActive      Boolean       @default(true)
   reservations  Reservation[]
+  organizations Organization[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 }
@@ -139,8 +157,8 @@ model Reservation {
   email         String
   tourId        String
   tour          Tour              @relation(fields: [tourId], references: [id])
-  scheduleId    String
-  schedule      TourSchedule      @relation(fields: [scheduleId], references: [id])
+  scheduleId    String?
+  schedule      TourSchedule?     @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
   adultCount    Int
   childCount    Int               @default(0)
   boardingPoint String?
@@ -149,6 +167,34 @@ model Reservation {
   status        ReservationStatus @default(PENDING)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+}
+
+model Organization {
+  id            String                 @id @default(cuid())
+  tourId        String
+  tour          Tour                   @relation(fields: [tourId], references: [id])
+  scheduleId    String?
+  schedule      TourSchedule?          @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  tourDate      DateTime
+  firstName     String
+  lastName      String
+  phone         String
+  email         String?
+  adultCount    Int
+  childCount    Int                    @default(0)
+  boardingPoint String?
+  note          String?                @db.Text
+  totalPrice    Decimal                @db.Decimal(10, 2)
+  leadSource    OrganizationLeadSource
+  status        OrganizationStatus     @default(CONFIRMED)
+  createdById   String?
+  createdBy     User?                  @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([tourDate])
+  @@index([scheduleId])
+  @@index([tourId, tourDate])
 }
 
 model Announcement {

@@ -34,7 +34,8 @@ export type ReservationEmailVariant =
   | "contacted"
   | "confirmed"
   | "cancelled"
-  | "completed";
+  | "completed"
+  | "updated";
 
 const VARIANT_CONFIG: Record<
   ReservationEmailVariant,
@@ -81,6 +82,14 @@ const VARIANT_CONFIG: Record<
     accent: "#2d5a3d",
     badge: "Tamamlandı",
     badgeBg: "#b8d4b8",
+  },
+  updated: {
+    title: "Rezervasyonunuz Güncellendi",
+    intro: "rezervasyon bilgileriniz güncellendi. Güncel detaylar aşağıdadır.",
+    subject: "Rezervasyonunuz güncellendi — Kaçkarlı Tur",
+    accent: "#1e4a6b",
+    badge: "Güncellendi",
+    badgeBg: "#a8cce8",
   },
 };
 
@@ -420,6 +429,10 @@ export async function sendReservationCancelledEmail(data: ReservationEmailData) 
 
 export async function sendReservationCompletedEmail(data: ReservationEmailData) {
   return sendReservationStatusEmail("completed", data);
+}
+
+export async function sendReservationUpdatedEmail(data: ReservationEmailData) {
+  return sendReservationStatusEmail("updated", data);
 }
 
 export async function sendReservationStatusEmail(

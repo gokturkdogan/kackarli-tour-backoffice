@@ -7,6 +7,35 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { scheduleSchema, bulkScheduleSchema, type ScheduleFormData, type BulkScheduleFormData } from "@/lib/validations";
 import { parseDateOnly, toDateInputValue } from "@/lib/date-helpers";
 import type { ActionResult } from "@/actions/types";
+import {
+  buildReservationEmailData,
+  sendReservationStatusEmail,
+} from "@/lib/emails/reservation-email";
+
+const reservationEmailInclude = {
+  tour: {
+    select: {
+      title: true,
+      subtitle: true,
+      duration: true,
+      departureTime: true,
+      returnTime: true,
+      includedServices: true,
+      itinerary: {
+        orderBy: [{ sortOrder: "asc" as const }, { dayNumber: "asc" as const }],
+        select: {
+          time: true,
+          title: true,
+          duration: true,
+          stopType: true,
+          sortOrder: true,
+          dayNumber: true,
+        },
+      },
+    },
+  },
+  schedule: { select: { startDate: true, endDate: true } },
+};
 
 export async function getSchedules() {
   return prisma.tourSchedule.findMany({
@@ -60,6 +89,7 @@ export type CalendarExistingSchedule = {
   capacity: number;
   reservedCount: number;
   pendingCount: number;
+  reservationCount: number;
   price: number | null;
   childPrice: number | null;
   tourPrice: number;
@@ -86,6 +116,7 @@ async function getReservationGuestCountsBySchedule() {
   const map = new Map<string, { confirmed: number; pending: number }>();
 
   for (const stat of stats) {
+    if (!stat.scheduleId) continue;
     const guests = guestSum(stat._sum.adultCount, stat._sum.childCount);
     const entry = map.get(stat.scheduleId) ?? { confirmed: 0, pending: 0 };
 
@@ -101,10 +132,29 @@ async function getReservationGuestCountsBySchedule() {
   return map;
 }
 
+async function getActiveReservationCountsBySchedule() {
+  const stats = await prisma.reservation.groupBy({
+    by: ["scheduleId"],
+    where: {
+      status: { not: "CANCELLED" },
+      scheduleId: { not: null },
+    },
+    _count: { _all: true },
+  });
+
+  const map = new Map<string, number>();
+  for (const stat of stats) {
+    if (stat.scheduleId) {
+      map.set(stat.scheduleId, stat._count._all);
+    }
+  }
+  return map;
+}
+
 export async function getExistingSchedulesByDate(): Promise<
   Record<string, CalendarExistingSchedule[]>
 > {
-  const [schedules, reservationCounts] = await Promise.all([
+  const [schedules, reservationCounts, activeReservationCounts] = await Promise.all([
     prisma.tourSchedule.findMany({
       select: {
         id: true,
@@ -125,6 +175,7 @@ export async function getExistingSchedulesByDate(): Promise<
       orderBy: [{ startDate: "asc" }],
     }),
     getReservationGuestCountsBySchedule(),
+    getActiveReservationCountsBySchedule(),
   ]);
 
   const map: Record<string, CalendarExistingSchedule[]> = {};
@@ -138,6 +189,7 @@ export async function getExistingSchedulesByDate(): Promise<
       capacity: schedule.capacity,
       reservedCount: counts.confirmed,
       pendingCount: counts.pending,
+      reservationCount: activeReservationCounts.get(schedule.id) ?? 0,
       price: schedule.price ? Number(schedule.price) : null,
       childPrice: schedule.childPrice ? Number(schedule.childPrice) : null,
       tourPrice: Number(schedule.tour.price),
@@ -369,7 +421,12 @@ export async function deleteSchedule(id: string): Promise<ActionResult> {
     await requireAdmin();
     const schedule = await prisma.tourSchedule.findUnique({
       where: { id },
-      include: { _count: { select: { reservations: true } } },
+      include: {
+        reservations: {
+          where: { status: { not: "CANCELLED" } },
+          include: reservationEmailInclude,
+        },
+      },
     });
     if (!schedule) {
       return { success: false, error: "Tur tarihi bulunamadı" };
@@ -381,16 +438,40 @@ export async function deleteSchedule(id: string): Promise<ActionResult> {
       return { success: false, error: "Geçmiş tur tarihleri silinemez" };
     }
 
-    if (schedule._count.reservations > 0) {
-      return {
-        success: false,
-        error: "Rezervasyonu olan tur tarihi silinemez",
-      };
-    }
+    const emailPayloads = schedule.reservations.map((reservation) =>
+      buildReservationEmailData({
+        ...reservation,
+        totalPrice: reservation.totalPrice,
+        schedule: {
+          startDate: schedule.startDate,
+          endDate: schedule.endDate,
+        },
+      })
+    );
 
-    await prisma.tourSchedule.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      if (schedule.reservations.length > 0) {
+        await tx.reservation.updateMany({
+          where: { scheduleId: id, status: { not: "CANCELLED" } },
+          data: { status: "CANCELLED" },
+        });
+      }
+
+      await tx.tourSchedule.delete({ where: { id } });
+    });
+
+    await Promise.all(
+      emailPayloads.map(async (emailData) => {
+        try {
+          await sendReservationStatusEmail("cancelled", emailData);
+        } catch (error) {
+          console.error("[mail] Tur tarihi silme iptal e-postası gönderilemedi:", error);
+        }
+      })
+    );
 
     revalidatePath("/schedules");
+    revalidatePath("/reservations");
     revalidatePath("/");
     revalidatePath("/turlar");
     revalidatePath("/rezervasyon");

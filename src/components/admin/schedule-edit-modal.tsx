@@ -106,11 +106,6 @@ export function ScheduleEditModal({ target, onClose }: ScheduleEditModalProps) {
                     {schedule.reservedCount} / {schedule.capacity}
                   </span>
                 </p>
-                {schedule.pendingCount > 0 && (
-                  <p className="text-amber-800 text-xs font-medium">
-                    {schedule.pendingCount} kişilik bekleyen rezervasyon var
-                  </p>
-                )}
                 <p className="text-xs text-muted-foreground mt-1">
                   Tur fiyatı: {formatPrice(schedule.tourPrice)}
                   {schedule.tourChildPrice != null &&

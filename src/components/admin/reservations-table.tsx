@@ -59,6 +59,17 @@ function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
+function getReservationScheduleLabel(reservation: AdminReservation): string {
+  if (!reservation.schedule) {
+    return "Tur tarihi kaldırıldı";
+  }
+
+  return formatScheduleLabel(
+    new Date(reservation.schedule.startDate),
+    reservation.schedule.endDate ? new Date(reservation.schedule.endDate) : null
+  );
+}
+
 export function ReservationsTable({
   reservations,
 }: {
@@ -158,12 +169,7 @@ export function ReservationsTable({
                 <div className="space-y-1 text-sm">
                   <p className="font-medium text-forest-900">{reservation.tour.title}</p>
                   <p className="text-forest-800 text-xs leading-snug">
-                    {formatScheduleLabel(
-                      new Date(reservation.schedule.startDate),
-                      reservation.schedule.endDate
-                        ? new Date(reservation.schedule.endDate)
-                        : null
-                    )}
+                    {getReservationScheduleLabel(reservation)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between text-sm pt-1 border-t border-forest-50">
@@ -236,12 +242,7 @@ export function ReservationsTable({
                     </TableCell>
                     <TableCell>
                       <p className="text-sm text-forest-800 max-w-[180px] leading-snug">
-                        {formatScheduleLabel(
-                          new Date(reservation.schedule.startDate),
-                          reservation.schedule.endDate
-                            ? new Date(reservation.schedule.endDate)
-                            : null
-                        )}
+                        {getReservationScheduleLabel(reservation)}
                       </p>
                     </TableCell>
                     <TableCell>
@@ -319,12 +320,7 @@ export function ReservationsTable({
                   <DetailRow label="Tur" value={selected.tour.title} />
                   <DetailRow
                     label="Tur tarihi"
-                    value={formatScheduleLabel(
-                      new Date(selected.schedule.startDate),
-                      selected.schedule.endDate
-                        ? new Date(selected.schedule.endDate)
-                        : null
-                    )}
+                    value={getReservationScheduleLabel(selected)}
                   />
                   <DetailRow label="Kişi sayısı" value={guestSummary} />
                   <DetailRow label="Toplam" value={formatPrice(selected.totalPrice)} />

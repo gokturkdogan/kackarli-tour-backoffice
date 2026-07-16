@@ -31,7 +31,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { title: "Dashboard", href: "/", icon: LayoutDashboard },
   { title: "Turlar", href: "/tours", icon: Map },
-  { title: "Tur Tarihleri", href: "/schedules", icon: Calendar },
+  { title: "Tur Planı", href: "/schedules", icon: Calendar },
   { title: "Rezervasyonlar", href: "/reservations", icon: BookOpen },
   { title: "Duyurular", href: "/announcements", icon: Megaphone, disabled: true },
   { title: "Galeri", href: "/gallery", icon: Image, disabled: true },

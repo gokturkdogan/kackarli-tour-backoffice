@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toDateInputValue } from "@/lib/date-helpers";
 import { resolveAdultPrice, resolveChildPrice } from "@/lib/pricing";
@@ -10,8 +10,6 @@ import type { DateOverrideFields } from "@/components/admin/schedule-month-calen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type MobileFilter = "ozet" | "kayitli" | "secili" | "eklenebilir" | "tumu";
 
 interface ScheduleMobileListProps {
   month: Date;
@@ -23,6 +21,7 @@ interface ScheduleMobileListProps {
   defaultPricePlaceholder: string;
   defaultChildPricePlaceholder: string;
   templateDate?: string | null;
+  useCustomChildPrice?: boolean;
   onDayClick: (dateKey: string) => void;
   onRemoveDate: (dateKey: string) => void;
   onEditSchedule: (schedule: CalendarExistingSchedule, dateKey: string) => void;
@@ -41,21 +40,11 @@ interface DayMeta {
   isAvailable: boolean;
   currentTourSchedule?: CalendarExistingSchedule;
   otherSchedules: CalendarExistingSchedule[];
-  dayPendingCount: number;
   override?: DateOverrideFields;
   canManage: boolean;
   weekday: string;
   weekdayShort: string;
-  monthShort: string;
 }
-
-const FILTERS: { id: MobileFilter; label: string }[] = [
-  { id: "ozet", label: "Özet" },
-  { id: "kayitli", label: "Kayıtlı" },
-  { id: "secili", label: "Seçili" },
-  { id: "eklenebilir", label: "Eklenebilir" },
-  { id: "tumu", label: "Tümü" },
-];
 
 function getMonthDays(month: Date) {
   const year = month.getFullYear();
@@ -68,9 +57,25 @@ function getMonthDays(month: Date) {
   return days;
 }
 
-function hasCustomOverride(override?: DateOverrideFields): boolean {
+function getDefaultActiveDateKey(month: Date, today: Date): string {
+  const days = getMonthDays(month);
+  const todayKey = toDateInputValue(today);
+  if (days.some((d) => toDateInputValue(d) === todayKey)) {
+    return todayKey;
+  }
+  return toDateInputValue(days[0]!);
+}
+
+function hasCustomOverride(
+  override?: DateOverrideFields,
+  includeChildPrice = true
+): boolean {
   if (!override) return false;
-  return !!(override.capacity?.trim() || override.price?.trim() || override.childPrice?.trim());
+  return !!(
+    override.capacity?.trim() ||
+    override.price?.trim() ||
+    (includeChildPrice && override.childPrice?.trim())
+  );
 }
 
 function formatCompactPrice(price: number): string {
@@ -86,17 +91,40 @@ function formatDayHeading(date: Date, isToday: boolean) {
   return isToday ? `Bugün · ${label}` : label;
 }
 
-function MobileScheduleCard({
-  schedule,
-  canManage,
+function ScheduleIconButtons({
   onEdit,
   onDelete,
 }: {
-  schedule: CalendarExistingSchedule;
-  canManage: boolean;
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 text-forest-700"
+        aria-label="Düzenle"
+        onClick={onEdit}
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
+      <Button
+        type="button"
+        size="icon"
+        variant="ghost"
+        className="h-7 w-7 text-rose-700"
+        aria-label="Sil"
+        onClick={onDelete}
+      >
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+function MobileScheduleCard({ schedule }: { schedule: CalendarExistingSchedule }) {
   const adultPrice = resolveAdultPrice(schedule.price, schedule.tourPrice);
   const childPrice = resolveChildPrice(
     schedule.childPrice,
@@ -109,35 +137,6 @@ function MobileScheduleCard({
 
   return (
     <div className="rounded-lg border border-rose-200 bg-white overflow-hidden">
-      <div className="flex items-center justify-between gap-2 px-3 py-2 bg-rose-50 border-b border-rose-100">
-        <div className="flex flex-wrap gap-1.5">
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
-              schedule.isActive ? "bg-forest-600 text-white" : "bg-slate-500 text-white"
-            )}
-          >
-            {schedule.isActive ? "Aktif" : "Pasif"}
-          </span>
-          <span
-            className={cn(
-              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase text-white",
-              isFull ? "bg-rose-600" : "bg-amber-500"
-            )}
-          >
-            {isFull ? "Dolu" : "Açık"}
-          </span>
-        </div>
-        {schedule.pendingCount > 0 && (
-          <span
-            className="inline-flex items-center justify-center rounded-full bg-amber-500 p-1.5 text-white"
-            title={`${schedule.pendingCount} bekleyen rezervasyon`}
-          >
-            <Bell className="h-3.5 w-3.5" />
-          </span>
-        )}
-      </div>
-
       <div className="p-3 space-y-3">
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
@@ -174,31 +173,6 @@ function MobileScheduleCard({
             </p>
           </div>
         </div>
-
-        {canManage && (
-          <div className="grid grid-cols-2 gap-2 pt-1">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10"
-              onClick={onEdit}
-            >
-              <Pencil className="h-4 w-4 mr-1.5" />
-              Düzenle
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-10 text-rose-700 border-rose-200 hover:bg-rose-50"
-              onClick={onDelete}
-            >
-              <Trash2 className="h-4 w-4 mr-1.5" />
-              Sil
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -226,26 +200,15 @@ function OtherTourRow({
             Onaylı {schedule.reservedCount}/{schedule.capacity} · {formatCompactPrice(adultPrice)}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-sage-200 px-2 py-0.5 text-[10px] font-semibold text-forest-800">
-          Başka tur
-        </span>
-      </div>
-      {canManage && (
-        <div className="grid grid-cols-2 gap-2">
-          <Button type="button" variant="outline" size="sm" className="h-9" onClick={onEdit}>
-            Düzenle
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-9 text-rose-700 border-rose-200"
-            onClick={onDelete}
-          >
-            Sil
-          </Button>
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <div className="flex flex-wrap justify-end gap-1 items-center">
+            <span className="rounded-full bg-sage-200 px-2 py-0.5 text-[10px] font-semibold text-forest-800">
+              Başka tur
+            </span>
+            {canManage && <ScheduleIconButtons onEdit={onEdit} onDelete={onDelete} />}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -257,6 +220,7 @@ function SelectedDayPanel({
   defaultCapacity,
   defaultPricePlaceholder,
   defaultChildPricePlaceholder,
+  useCustomChildPrice,
   onRemoveDate,
   onOverrideChange,
 }: {
@@ -266,6 +230,7 @@ function SelectedDayPanel({
   defaultCapacity: number;
   defaultPricePlaceholder: string;
   defaultChildPricePlaceholder: string;
+  useCustomChildPrice: boolean;
   onRemoveDate: (dateKey: string) => void;
   onOverrideChange: (dateKey: string, field: keyof DateOverrideFields, value: string) => void;
 }) {
@@ -281,7 +246,7 @@ function SelectedDayPanel({
               Şablon
             </span>
           )}
-          {hasCustomOverride(override) && (
+          {hasCustomOverride(override, useCustomChildPrice) && (
             <span className="rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">
               Özel
             </span>
@@ -300,7 +265,7 @@ function SelectedDayPanel({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Boş bırakılan alanlar için sağdaki varsayılan değerler kullanılır.
+        Boş bırakılan alanlar için alttaki varsayılan değerler kullanılır.
       </p>
 
       <div className="grid grid-cols-1 gap-3">
@@ -318,7 +283,7 @@ function SelectedDayPanel({
             className="h-10 bg-white"
           />
         </div>
-        <div className="grid grid-cols-2 gap-2">
+        <div className={cn("grid gap-2", useCustomChildPrice ? "grid-cols-2" : "grid-cols-1")}>
           <div className="space-y-1.5">
             <Label htmlFor={`mobile-${dateKey}-price`} className="text-xs">
               Yetişkin ₺
@@ -334,24 +299,111 @@ function SelectedDayPanel({
               className="h-10 bg-white"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={`mobile-${dateKey}-childPrice`} className="text-xs">
-              Çocuk ₺
-            </Label>
-            <Input
-              id={`mobile-${dateKey}-childPrice`}
-              type="number"
-              min={0}
-              step="0.01"
-              placeholder={defaultChildPricePlaceholder}
-              value={override?.childPrice ?? ""}
-              onChange={(e) => onOverrideChange(dateKey, "childPrice", e.target.value)}
-              className="h-10 bg-white"
-            />
-          </div>
+          {useCustomChildPrice && (
+            <div className="space-y-1.5">
+              <Label htmlFor={`mobile-${dateKey}-childPrice`} className="text-xs">
+                Çocuk ₺
+              </Label>
+              <Input
+                id={`mobile-${dateKey}-childPrice`}
+                type="number"
+                min={0}
+                step="0.01"
+                placeholder={defaultChildPricePlaceholder}
+                value={override?.childPrice ?? ""}
+                onChange={(e) => onOverrideChange(dateKey, "childPrice", e.target.value)}
+                className="h-10 bg-white"
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+function DayStatusDot({ day }: { day: DayMeta }) {
+  if (day.isSelected) {
+    return <span className="block h-1.5 w-1.5 rounded-full bg-forest-500" />;
+  }
+  if (day.isBooked) {
+    return <span className="block h-1.5 w-1.5 rounded-full bg-rose-500" />;
+  }
+  if (day.otherSchedules.length > 0) {
+    return <span className="block h-1.5 w-1.5 rounded-full bg-sage-500" />;
+  }
+  if (day.isAvailable) {
+    return <span className="block h-1.5 w-1.5 rounded-full bg-emerald-400" />;
+  }
+  return <span className="block h-1.5 w-1.5 rounded-full bg-transparent" />;
+}
+
+function DayCircleButton({
+  day,
+  isActive,
+  onSelect,
+  buttonRef,
+}: {
+  day: DayMeta;
+  isActive: boolean;
+  onSelect: () => void;
+  buttonRef?: (el: HTMLButtonElement | null) => void;
+}) {
+  return (
+    <button
+      ref={buttonRef}
+      type="button"
+      onClick={onSelect}
+      aria-label={day.weekday}
+      aria-current={isActive ? "date" : undefined}
+      className="flex shrink-0 flex-col items-center gap-1.5 px-0.5"
+    >
+      <span
+        className={cn(
+          "text-[10px] font-semibold uppercase tracking-wide",
+          isActive ? "text-forest-700" : "text-muted-foreground"
+        )}
+      >
+        {day.weekdayShort.replace(".", "").slice(0, 3)}
+      </span>
+      <span
+        className={cn(
+          "flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold tabular-nums transition-colors",
+          isActive && "bg-forest-600 text-white shadow-sm",
+          !isActive && day.isToday && "bg-forest-50 text-forest-900 ring-2 ring-forest-400",
+          !isActive && !day.isToday && day.isPast && "bg-stone-100 text-stone-400",
+          !isActive &&
+            !day.isToday &&
+            !day.isPast &&
+            day.isSelected &&
+            "bg-forest-100 text-forest-800 ring-1 ring-forest-300",
+          !isActive &&
+            !day.isToday &&
+            !day.isPast &&
+            !day.isSelected &&
+            day.isBooked &&
+            "bg-rose-50 text-rose-900 ring-1 ring-rose-200",
+          !isActive &&
+            !day.isToday &&
+            !day.isPast &&
+            !day.isSelected &&
+            !day.isBooked &&
+            day.otherSchedules.length > 0 &&
+            "bg-sage-50 text-forest-800 ring-1 ring-sage-200",
+          !isActive &&
+            !day.isToday &&
+            !day.isPast &&
+            !day.isSelected &&
+            !day.isBooked &&
+            day.otherSchedules.length === 0 &&
+            day.isAvailable &&
+            "bg-white text-forest-900 ring-1 ring-forest-100"
+        )}
+      >
+        {day.date.getDate()}
+      </span>
+      <DayStatusDot day={day} />
+    </button>
   );
 }
 
@@ -365,21 +417,25 @@ export function ScheduleMobileList({
   defaultPricePlaceholder,
   defaultChildPricePlaceholder,
   templateDate,
+  useCustomChildPrice = false,
   onDayClick,
   onRemoveDate,
   onEditSchedule,
   onDeleteSchedule,
   onOverrideChange,
 }: ScheduleMobileListProps) {
-  const todayRef = useRef<HTMLDivElement>(null);
-  const [filter, setFilter] = useState<MobileFilter>("ozet");
-  const [showAllAvailable, setShowAllAvailable] = useState(false);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const dayButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
+
+  const [activeDateKey, setActiveDateKey] = useState(() =>
+    getDefaultActiveDateKey(month, today)
+  );
 
   const days = useMemo(() => getMonthDays(month), [month]);
 
@@ -404,285 +460,155 @@ export function ScheduleMobileList({
         isAvailable,
         currentTourSchedule: existingOnDay.find((s) => s.tourId === selectedTourId),
         otherSchedules: existingOnDay.filter((s) => s.tourId !== selectedTourId),
-        dayPendingCount: existingOnDay.reduce((sum, s) => sum + s.pendingCount, 0),
         override: dateOverrides[dateKey],
         canManage: !isPast,
         weekday: date.toLocaleDateString("tr-TR", { weekday: "long" }),
         weekdayShort: date.toLocaleDateString("tr-TR", { weekday: "short" }),
-        monthShort: date.toLocaleDateString("tr-TR", { month: "short" }),
       };
     });
   }, [days, today, existingSchedulesByDate, selectedTourId, selectedDates, dateOverrides]);
 
-  const stats = useMemo(() => {
-    const booked = dayMetas.filter((d) => d.isBooked).length;
-    const selected = dayMetas.filter((d) => d.isSelected).length;
-    const available = dayMetas.filter((d) => d.isAvailable).length;
-    const pending = dayMetas.filter((d) => d.dayPendingCount > 0).length;
-    return { booked, selected, available, pending };
-  }, [dayMetas]);
-
-  const filteredDays = useMemo(() => {
-    if (filter === "kayitli") {
-      return dayMetas.filter((d) => d.isBooked || d.otherSchedules.length > 0);
-    }
-    if (filter === "secili") {
-      return dayMetas.filter((d) => d.isSelected);
-    }
-    if (filter === "eklenebilir") {
-      return dayMetas.filter((d) => d.isAvailable);
-    }
-    if (filter === "tumu") {
-      return dayMetas.filter((d) => !d.isPast || d.existingOnDay.length > 0 || d.isSelected);
-    }
-
-    const horizon = new Date(today);
-    horizon.setDate(horizon.getDate() + 14);
-
-    const important = dayMetas.filter((d) => {
-      if (d.isBooked || d.isSelected || d.otherSchedules.length > 0 || d.dayPendingCount > 0) {
-        return true;
-      }
-      if (d.isToday) return true;
-      if (d.isAvailable && d.date <= horizon) return true;
-      return false;
-    });
-
-    const importantKeys = new Set(important.map((d) => d.dateKey));
-    const extraAvailable = dayMetas.filter(
-      (d) => d.isAvailable && !importantKeys.has(d.dateKey)
-    );
-
-    if (showAllAvailable || extraAvailable.length === 0) {
-      return [...important, ...extraAvailable];
-    }
-
-    return important;
-  }, [dayMetas, filter, showAllAvailable, today]);
-
-  const hiddenAvailableCount = useMemo(() => {
-    if (filter !== "ozet") return 0;
-    const horizon = new Date(today);
-    horizon.setDate(horizon.getDate() + 14);
-    return dayMetas.filter(
-      (d) =>
-        d.isAvailable &&
-        d.date > horizon &&
-        !showAllAvailable
-    ).length;
-  }, [dayMetas, filter, showAllAvailable, today]);
+  const activeDay = useMemo(
+    () => dayMetas.find((d) => d.dateKey === activeDateKey) ?? dayMetas[0],
+    [dayMetas, activeDateKey]
+  );
 
   useEffect(() => {
-    setShowAllAvailable(false);
-    setFilter("ozet");
-  }, [month]);
+    setActiveDateKey(getDefaultActiveDateKey(month, today));
+  }, [month, today]);
 
   useEffect(() => {
-    if (filter === "ozet" && todayRef.current) {
-      todayRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    const button = dayButtonRefs.current[activeDateKey];
+    if (button) {
+      button.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
     }
-  }, [month, filter]);
+  }, [activeDateKey, month]);
 
-  const isCompactAvailable = (day: DayMeta) =>
-    filter === "ozet" && day.isAvailable && !day.isToday;
+  const hasContent =
+    activeDay &&
+    (activeDay.isBooked ||
+      activeDay.isSelected ||
+      activeDay.otherSchedules.length > 0 ||
+      activeDay.isAvailable);
 
   return (
     <div className="md:hidden space-y-4">
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-lg bg-rose-50 border border-rose-100 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-rose-700/80">Kayıtlı</p>
-          <p className="text-lg font-bold text-rose-900 tabular-nums">{stats.booked}</p>
-        </div>
-        <div className="rounded-lg bg-forest-50 border border-forest-100 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-forest-700/80">Seçili</p>
-          <p className="text-lg font-bold text-forest-900 tabular-nums">{stats.selected}</p>
-        </div>
-        <div className="rounded-lg bg-emerald-50 border border-emerald-100 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-emerald-700/80">Eklenebilir</p>
-          <p className="text-lg font-bold text-emerald-900 tabular-nums">{stats.available}</p>
-        </div>
-        <div className="rounded-lg bg-amber-50 border border-amber-100 px-3 py-2">
-          <p className="text-[10px] uppercase tracking-wide text-amber-800/80">Bekleyen</p>
-          <p className="text-lg font-bold text-amber-900 tabular-nums">{stats.pending}</p>
-        </div>
-      </div>
-
-      <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
-        {FILTERS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setFilter(item.id)}
-            className={cn(
-              "shrink-0 rounded-full px-3.5 py-2 text-xs font-semibold transition-colors",
-              filter === item.id
-                ? "bg-forest-600 text-white shadow-sm"
-                : "bg-white border border-forest-100 text-forest-700"
-            )}
-          >
-            {item.label}
-          </button>
+      <div
+        ref={stripRef}
+        className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none"
+      >
+        {dayMetas.map((day) => (
+          <DayCircleButton
+            key={day.dateKey}
+            day={day}
+            isActive={day.dateKey === activeDateKey}
+            onSelect={() => setActiveDateKey(day.dateKey)}
+            buttonRef={(el) => {
+              dayButtonRefs.current[day.dateKey] = el;
+            }}
+          />
         ))}
       </div>
 
-      {filteredDays.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-forest-200 bg-white px-4 py-10 text-center">
-          <p className="text-sm font-medium text-forest-900">Bu filtrede gün yok</p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Başka bir filtre seçin veya yeni gün ekleyin.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {filteredDays.map((day) => {
-            const showFullCard =
-              day.isBooked ||
-              day.isSelected ||
-              day.otherSchedules.length > 0 ||
-              day.dayPendingCount > 0 ||
-              !isCompactAvailable(day);
+      {activeDay ? (
+        <div
+          className={cn(
+            "rounded-xl border bg-white overflow-hidden",
+            activeDay.isToday && "ring-2 ring-forest-400 ring-offset-1",
+            activeDay.isSelected && "border-forest-300",
+            activeDay.isBooked && !activeDay.isSelected && "border-rose-200",
+            !activeDay.isBooked && !activeDay.isSelected && "border-forest-100"
+          )}
+        >
+          <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-forest-50 bg-mist/40">
+            <p className="text-sm font-semibold text-forest-900 capitalize truncate">
+              {formatDayHeading(activeDay.date, activeDay.isToday)}
+            </p>
+            {activeDay.isBooked && activeDay.currentTourSchedule && activeDay.canManage && (
+              <ScheduleIconButtons
+                onEdit={() => onEditSchedule(activeDay.currentTourSchedule!, activeDay.dateKey)}
+                onDelete={() =>
+                  onDeleteSchedule(activeDay.currentTourSchedule!, activeDay.dateKey)
+                }
+              />
+            )}
+          </div>
 
-            if (!showFullCard) {
-              return (
-                <button
-                  key={day.dateKey}
-                  type="button"
-                  onClick={() => onDayClick(day.dateKey)}
-                  className="w-full flex items-center justify-between gap-3 rounded-xl border border-forest-100 bg-white px-3 py-3 text-left active:bg-emerald-50/60 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg bg-emerald-50 text-emerald-800">
-                      <span className="text-sm font-bold leading-none tabular-nums">
-                        {day.date.getDate()}
-                      </span>
-                      <span className="text-[9px] uppercase mt-0.5">{day.weekdayShort}</span>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-forest-900 capitalize truncate">
-                        {day.weekday}
-                      </p>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {day.monthShort}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shrink-0">
-                    <Plus className="h-3.5 w-3.5" />
-                    Ekle
-                  </span>
-                </button>
-              );
-            }
+          <div className="p-3 space-y-3">
+            {activeDay.isBooked && activeDay.currentTourSchedule && (
+              <MobileScheduleCard schedule={activeDay.currentTourSchedule} />
+            )}
 
-            return (
-              <div
-                key={day.dateKey}
-                ref={day.isToday ? todayRef : undefined}
-                className={cn(
-                  "rounded-xl border bg-white overflow-hidden",
-                  day.isToday && "ring-2 ring-forest-400 ring-offset-1",
-                  day.isSelected && "border-forest-300",
-                  day.isBooked && !day.isSelected && "border-rose-200",
-                  !day.isBooked && !day.isSelected && "border-forest-100"
-                )}
+            {activeDay.otherSchedules.map((schedule) => (
+              <OtherTourRow
+                key={schedule.id}
+                schedule={schedule}
+                canManage={activeDay.canManage}
+                onEdit={() => onEditSchedule(schedule, activeDay.dateKey)}
+                onDelete={() => onDeleteSchedule(schedule, activeDay.dateKey)}
+              />
+            ))}
+
+            {activeDay.isSelected && (
+              <SelectedDayPanel
+                dateKey={activeDay.dateKey}
+                override={activeDay.override}
+                templateDate={templateDate}
+                defaultCapacity={defaultCapacity}
+                defaultPricePlaceholder={defaultPricePlaceholder}
+                defaultChildPricePlaceholder={defaultChildPricePlaceholder}
+                useCustomChildPrice={useCustomChildPrice}
+                onRemoveDate={onRemoveDate}
+                onOverrideChange={onOverrideChange}
+              />
+            )}
+
+            {activeDay.isAvailable && (
+              <button
+                type="button"
+                onClick={() => onDayClick(activeDay.dateKey)}
+                className="w-full flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-300 bg-emerald-50/40 px-4 py-10 text-center active:bg-emerald-50 transition-colors"
               >
-                <div className="flex items-center justify-between gap-2 px-3 py-2.5 border-b border-forest-50 bg-mist/40">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-forest-900 capitalize truncate">
-                      {formatDayHeading(day.date, day.isToday)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    {day.isBooked && (
-                      <span className="rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase text-white">
-                        Kayıtlı
-                      </span>
-                    )}
-                    {day.dayPendingCount > 0 && (
-                      <span
-                        className="inline-flex items-center justify-center rounded-full bg-amber-500 p-1.5 text-white"
-                        title={`${day.dayPendingCount} bekleyen rezervasyon`}
-                      >
-                        <Bell className="h-3.5 w-3.5" />
-                      </span>
-                    )}
-                  </div>
-                </div>
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-white">
+                  <Plus className="h-6 w-6" />
+                </span>
+                <span className="text-sm font-semibold text-emerald-800">Tur tarihi ekle</span>
+                <span className="text-xs text-muted-foreground">
+                  Bu güne yeni tur programı eklemek için dokunun
+                </span>
+              </button>
+            )}
 
-                <div className="p-3 space-y-3">
-                  {day.isBooked && day.currentTourSchedule && (
-                    <MobileScheduleCard
-                      schedule={day.currentTourSchedule}
-                      canManage={day.canManage}
-                      onEdit={() => onEditSchedule(day.currentTourSchedule!, day.dateKey)}
-                      onDelete={() => onDeleteSchedule(day.currentTourSchedule!, day.dateKey)}
-                    />
-                  )}
-
-                  {day.otherSchedules.map((schedule) => (
-                    <OtherTourRow
-                      key={schedule.id}
-                      schedule={schedule}
-                      canManage={day.canManage}
-                      onEdit={() => onEditSchedule(schedule, day.dateKey)}
-                      onDelete={() => onDeleteSchedule(schedule, day.dateKey)}
-                    />
-                  ))}
-
-                  {day.isSelected && (
-                    <SelectedDayPanel
-                      dateKey={day.dateKey}
-                      override={day.override}
-                      templateDate={templateDate}
-                      defaultCapacity={defaultCapacity}
-                      defaultPricePlaceholder={defaultPricePlaceholder}
-                      defaultChildPricePlaceholder={defaultChildPricePlaceholder}
-                      onRemoveDate={onRemoveDate}
-                      onOverrideChange={onOverrideChange}
-                    />
-                  )}
-
-                  {day.isAvailable && filter !== "ozet" && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full h-11 border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50"
-                      onClick={() => onDayClick(day.dateKey)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Bu güne tur tarihi ekle
-                    </Button>
-                  )}
-                </div>
+            {!hasContent && activeDay.isPast && (
+              <div className="rounded-lg border border-dashed border-stone-200 bg-stone-50 px-4 py-8 text-center">
+                <p className="text-sm font-medium text-stone-600">Geçmiş gün</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Bu günde kayıtlı tur tarihi yok.
+                </p>
               </div>
-            );
-          })}
+            )}
+          </div>
         </div>
-      )}
+      ) : null}
 
-      {hiddenAvailableCount > 0 && (
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full h-11"
-          onClick={() => setShowAllAvailable(true)}
-        >
-          <ChevronDown className="h-4 w-4 mr-2" />
-          {hiddenAvailableCount} eklenebilir gün daha göster
-        </Button>
-      )}
-
-      {showAllAvailable && filter === "ozet" && (
-        <Button
-          type="button"
-          variant="ghost"
-          className="w-full h-9 text-muted-foreground"
-          onClick={() => setShowAllAvailable(false)}
-        >
-          <ChevronUp className="h-4 w-4 mr-2" />
-          Daha az göster
-        </Button>
-      )}
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground px-1">
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-rose-500" />
+          Kayıtlı
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-forest-500" />
+          Seçili
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          Eklenebilir
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <span className="h-2 w-2 rounded-full bg-sage-500" />
+          Başka tur
+        </span>
+      </div>
     </div>
   );
 }

@@ -136,3 +136,53 @@ export const reservationStatusUpdateSchema = z.object({
 });
 
 export type ReservationStatusUpdateData = z.infer<typeof reservationStatusUpdateSchema>;
+
+export const webReservationUpdateSchema = reservationSchema.extend({
+  id: z.string().min(1),
+  status: reservationStatusSchema,
+});
+
+export type WebReservationUpdateData = z.infer<typeof webReservationUpdateSchema>;
+
+export const organizationLeadSourceSchema = z.enum([
+  "PHONE",
+  "WHATSAPP",
+  "INSTAGRAM",
+  "FACEBOOK",
+  "OTHER",
+]);
+
+export const organizationStatusSchema = z.enum([
+  "PLANNED",
+  "CONFIRMED",
+  "CANCELLED",
+  "COMPLETED",
+]);
+
+export const organizationSchema = z.object({
+  tourId: z.string().min(1, "Tur seçimi gereklidir"),
+  scheduleId: z.string().optional(),
+  tourDate: z.string().min(1, "Tur tarihi gereklidir"),
+  firstName: z.string().min(2, "Ad en az 2 karakter olmalıdır"),
+  lastName: z.string().min(2, "Soyad en az 2 karakter olmalıdır"),
+  phone: z
+    .string()
+    .min(10, "Geçerli bir telefon numarası giriniz")
+    .regex(/^[\d\s+()-]+$/, "Geçerli bir telefon numarası giriniz"),
+  email: z.string().email("Geçerli bir e-posta adresi giriniz").optional().or(z.literal("")),
+  adultCount: z.number().int().min(1, "En az 1 yetişkin olmalıdır"),
+  childCount: z.number().int().min(0),
+  boardingPoint: z.string().optional(),
+  note: z.string().max(2000).optional(),
+  totalPrice: z.number().min(0, "Toplam fiyat geçersiz"),
+  leadSource: organizationLeadSourceSchema,
+  status: organizationStatusSchema,
+});
+
+export type OrganizationFormData = z.infer<typeof organizationSchema>;
+
+export const organizationUpdateSchema = organizationSchema.extend({
+  id: z.string().min(1),
+});
+
+export type OrganizationUpdateData = z.infer<typeof organizationUpdateSchema>;

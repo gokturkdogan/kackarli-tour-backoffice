@@ -15,14 +15,14 @@ export default async function SchedulesPage() {
   return (
     <>
       <AdminHeader
-        title="Tur Tarihleri"
-        description="Takvimden gün seçin, kontenjan ve fiyatları yönetin"
+        title="Tur Planı"
+        description="Takvimden gün seçin, tur programı kontenjan ve fiyatlarını yönetin"
       />
       <PageContent className="!p-3 sm:!p-4 md:!p-5 max-w-none">
         {tours.length === 0 ? (
           <div className="rounded-lg border border-forest-100 bg-white p-8 text-center max-w-lg">
             <p className="text-muted-foreground mb-4">
-              Tur tarihi eklemek için önce aktif bir tur oluşturmalısınız.
+              Tur planı oluşturmak için önce aktif bir tur oluşturmalısınız.
             </p>
             <Link
               href="/tours/new"

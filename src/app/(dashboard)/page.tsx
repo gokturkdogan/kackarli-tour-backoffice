@@ -35,9 +35,9 @@ export default async function AdminDashboardPage() {
       href: "/reservations",
     },
     {
-      title: "Tur Tarihleri",
+      title: "Tur Planı",
       value: stats.scheduleCount,
-      description: "Aktif tarihler",
+      description: "Aktif planlar",
       icon: Calendar,
       href: "/schedules",
     },
