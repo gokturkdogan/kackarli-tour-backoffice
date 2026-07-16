@@ -1,5 +1,6 @@
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { PushNotificationsProvider } from "@/components/push-notifications-provider";
 import { PushNotificationPrompt } from "@/components/push-notification-prompt";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -12,12 +13,14 @@ export default function AdminLayout({
 }) {
   return (
     <SidebarProvider>
-      <AdminSidebar />
-      <SidebarInset className="bg-mist min-h-screen min-w-0 overflow-x-hidden">
-        {children}
-      </SidebarInset>
-      <Toaster richColors position="top-right" />
-      <PushNotificationPrompt />
+      <PushNotificationsProvider>
+        <AdminSidebar />
+        <SidebarInset className="bg-mist min-h-screen min-w-0 overflow-x-hidden">
+          {children}
+        </SidebarInset>
+        <Toaster richColors position="top-right" />
+        <PushNotificationPrompt />
+      </PushNotificationsProvider>
     </SidebarProvider>
   );
 }

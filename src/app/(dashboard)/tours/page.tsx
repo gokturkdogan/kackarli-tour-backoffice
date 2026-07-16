@@ -81,7 +81,13 @@ export default async function ToursPage() {
                     <span className="font-medium text-forest-900">
                       {formatPrice(tour.price.toString())}
                     </span>
-                    <TourActions tour={tour} />
+                    <TourActions
+                      tour={{
+                        id: tour.id,
+                        title: tour.title,
+                        isActive: tour.isActive,
+                      }}
+                    />
                   </div>
                 </div>
               ))}
@@ -139,7 +145,13 @@ export default async function ToursPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <TourActions tour={tour} />
+                          <TourActions
+                      tour={{
+                        id: tour.id,
+                        title: tour.title,
+                        isActive: tour.isActive,
+                      }}
+                    />
                         </TableCell>
                       </TableRow>
                     ))}
